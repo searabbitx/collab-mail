@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 class Tab extends JPanel {
     private static final int POLLING_PERIOD = 10;
 
-    private final MailBox addresses;
+    private final MailBox mailBox;
 
     private JTable messagesTable;
     private JTable addressTable;
@@ -24,8 +24,8 @@ class Tab extends JPanel {
     private JButton removeButton;
     private JButton pollButton;
 
-    Tab(MailBox addresses) {
-        this.addresses = addresses;
+    Tab(MailBox mailBox) {
+        this.mailBox = mailBox;
 
         initializeComponents();
         setupLayout();
@@ -69,6 +69,12 @@ class Tab extends JPanel {
         actionButton = new JButton("Add");
         removeButton = new JButton("Remove");
         pollButton = new JButton("Poll now!");
+
+        restoreValues();
+    }
+
+    private void restoreValues() {
+        mailBox.addresses().forEach(this::addAddressTableRow);
     }
 
     private void setupLayout() {
@@ -178,7 +184,7 @@ class Tab extends JPanel {
     }
 
     private void pollMessages() {
-        this.addresses.pollInteractions().forEach(this::addMessagesTableRow);
+        this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
     }
 
     private void removeSelectedEntry() {
@@ -198,7 +204,7 @@ class Tab extends JPanel {
                 JOptionPane.QUESTION_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            this.addresses.remove(addr);
+            this.mailBox.remove(addr);
             model.removeRow(selectedRow);
 
             // Select next row if available
@@ -275,7 +281,7 @@ class Tab extends JPanel {
             String username = userField.getText().trim();
 
             if (!username.isEmpty()) {
-                addAddressTableRow(this.addresses.generate(username));
+                addAddressTableRow(this.mailBox.generate(username));
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,

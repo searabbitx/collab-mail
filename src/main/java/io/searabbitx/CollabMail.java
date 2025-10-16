@@ -8,9 +8,15 @@ public class CollabMail implements BurpExtension {
     public void initialize(MontoyaApi api) {
         api.extension().setName("CollabMail");
         api.logging().logToOutput("Initializing collab mail");
-        api.userInterface().registerSuiteTab("CollabMail", new Tab(new MailBox(api)));
+
+        api.userInterface().registerSuiteTab("CollabMail", initializeTab(api));
 
         Logger.logging = api.logging();
         Logger.log("Logger initialized");
+    }
+
+    private Tab initializeTab(MontoyaApi api) {
+        var storage = new Storage(api.persistence().extensionData(), api.collaborator());
+        return new Tab(new MailBox(storage));
     }
 }

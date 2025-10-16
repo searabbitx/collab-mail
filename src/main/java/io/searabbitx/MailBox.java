@@ -1,29 +1,30 @@
 package io.searabbitx;
 
-import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.Interaction;
 import burp.api.montoya.collaborator.SmtpDetails;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 class MailBox {
     private final CollaboratorClient client;
-    private final List<Address> book;
+    private final Storage storage;
 
-    MailBox(MontoyaApi api) {
-        this.client = api.collaborator().createClient();
-        this.book = new ArrayList<>();
+    MailBox(Storage storage) {
+        this.storage = storage;
+        this.client = storage.fetchClient();
     }
 
     String generate(String username) {
         var dom = client.generatePayload();
         var a = new Address(username, dom.toString());
-        book.add(a);
+        storage.storeAddress(a.toString());
         return a.toString();
+    }
+
+    Stream<String> addresses() {
+        return storage.fetchAddresses();
     }
 
     Stream<Mail> pollInteractions() {
@@ -37,7 +38,7 @@ class MailBox {
     }
 
     void remove(String add) {
-        this.book.removeIf(a -> a.toString().equals(add));
+        this.storage.removeAddress(add);
     }
 
     private record Address(String username, String domain) {
