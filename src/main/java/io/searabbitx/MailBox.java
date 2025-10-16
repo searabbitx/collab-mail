@@ -1,17 +1,20 @@
 package io.searabbitx;
 
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.collaborator.*;
+import burp.api.montoya.collaborator.CollaboratorClient;
+import burp.api.montoya.collaborator.Interaction;
+import burp.api.montoya.collaborator.SmtpDetails;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-public class Adresses {
-    private CollaboratorClient client;
-    private List<Address> book;
+public class MailBox {
+    private final CollaboratorClient client;
+    private final List<Address> book;
 
-    public Adresses(MontoyaApi api) {
+    public MailBox(MontoyaApi api) {
         this.client = api.collaborator().createClient();
         this.book = new ArrayList<>();
     }
@@ -24,10 +27,12 @@ public class Adresses {
     }
 
     public Stream<Mail> pollInteractions() {
-        return Stream.of(
-                new Mail("test@example.com", "test2@example.com", "Interaction 1 message", "Some content"),
-                new Mail("test2@example.com", "test3@example.com", "Interaction 2 message", "Some other content")
-        );
+        return client.getAllInteractions().stream()
+                .map(Interaction::smtpDetails)
+                .flatMap(Optional::stream)
+                .map(SmtpDetails::conversation)
+                .map(SmtpConversation::new)
+                .flatMap(sc -> sc.extractMail().stream());
     }
 
     public void remove(String add) {
@@ -35,10 +40,9 @@ public class Adresses {
     }
 
     private record Address(String username, String domain) {
+        @Override
         public String toString() {
             return username + "@" + domain;
         }
     }
-
-    public record Mail(String from, String to, String topic, String content){}
 }

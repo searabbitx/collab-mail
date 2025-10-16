@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Tab extends JPanel {
-    private final Adresses addresses;
+    private final MailBox addresses;
 
     private JTable leftTable;
     private JTable rightTable;
@@ -16,7 +16,7 @@ public class Tab extends JPanel {
     private JButton removeButton;
     private JButton pollButton;
 
-    public Tab(Adresses addresses) {
+    public Tab(MailBox addresses) {
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -133,7 +133,6 @@ public class Tab extends JPanel {
     }
 
     private void pollMessages() {
-        clearLeftTable();
         this.addresses.pollInteractions().forEach(this::addLeftTableRow);
     }
 
@@ -271,9 +270,9 @@ public class Tab extends JPanel {
         model.addRow(rowData);
     }
 
-    public void addLeftTableRow(Adresses.Mail mail) {
+    public void addLeftTableRow(Mail mail) {
         DefaultTableModel model = (DefaultTableModel) leftTable.getModel();
-        model.addRow(new Object[]{mail.from(), mail.to(), mail.topic()});
+        model.addRow(new Object[]{mail.from(), mail.to(), mail.subject()});
     }
 
     private void clearLeftTable() {

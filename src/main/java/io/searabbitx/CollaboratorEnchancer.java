@@ -10,6 +10,6 @@ public class CollaboratorEnchancer implements BurpExtension {
         api.extension().setName("Collaborator Enchancer");
         Logging logging = api.logging();
         logging.logToOutput("Initializing collab enchancer");
-        api.userInterface().registerSuiteTab("CollabEnchancer", new Tab(new Adresses(api)));
+        api.userInterface().registerSuiteTab("CollabEnchancer", new Tab(new MailBox(api)));
     }
 }
