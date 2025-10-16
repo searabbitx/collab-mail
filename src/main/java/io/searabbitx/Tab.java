@@ -4,10 +4,18 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Tab extends JPanel {
+    private static final int POLLING_PERIOD = 10;
+
     private final MailBox addresses;
 
     private JTable leftTable;
@@ -17,10 +25,17 @@ public class Tab extends JPanel {
     private JButton pollButton;
 
     public Tab(MailBox addresses) {
+        this.addresses = addresses;
+
         initializeComponents();
         setupLayout();
         setupEventHandlers();
-        this.addresses = addresses;
+        setupPeriodicTasks();
+    }
+
+    private void setupPeriodicTasks() {
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(this::pollMessages, POLLING_PERIOD, POLLING_PERIOD, TimeUnit.SECONDS);
     }
 
     private void initializeComponents() {
@@ -39,7 +54,12 @@ public class Tab extends JPanel {
 
         // Initialize right table (smaller table)
         String[] rightColumns = {"Address"};
-        DefaultTableModel rightModel = new DefaultTableModel(rightColumns, 0);
+        DefaultTableModel rightModel = new DefaultTableModel(rightColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         rightTable = new JTable(rightModel);
         rightTable.setFillsViewportHeight(true);
         rightTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -130,6 +150,26 @@ public class Tab extends JPanel {
         actionButton.addActionListener(_ -> showAddEntryDialog());
         removeButton.addActionListener(_ -> removeSelectedEntry());
         pollButton.addActionListener(_ -> pollMessages());
+        rightTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent mouseEvent) {
+                JTable table = (JTable) mouseEvent.getSource();
+                Point point = mouseEvent.getPoint();
+                int row = table.rowAtPoint(point);
+                if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && row != -1) {
+                    int modelRow = table.convertRowIndexToModel(row);
+                    String addr = (String) table.getModel().getValueAt(modelRow, 0);
+                    Toolkit.getDefaultToolkit()
+                            .getSystemClipboard()
+                            .setContents(new StringSelection(addr), null);
+                    JOptionPane.showConfirmDialog(
+                            table,
+                            addr + " copied to clipboard",
+                            "Address copied",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
     }
 
     private void pollMessages() {

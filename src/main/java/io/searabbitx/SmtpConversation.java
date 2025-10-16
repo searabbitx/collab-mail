@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -22,6 +21,7 @@ class SmtpConversation {
     private final String conversation;
 
     SmtpConversation(String conversation) {
+        Logger.log("SmtpConversation constructor");
         this.conversation = conversation;
     }
 
@@ -49,28 +49,30 @@ class SmtpConversation {
     }
 
     private Optional<Mail> parseData(String data, String recipient) {
+        Logger.log("Parsing smtp data");
         var parser = new MimeStreamParser();
         CompletableFuture<Mail> future = new CompletableFuture<>();
-        parser.setContentHandler(new SimplContentHandler(future));
+        parser.setContentHandler(new SimplContentHandler(future, recipient));
 
-        try {
-            var is = new ByteArrayInputStream(
-                data.getBytes(StandardCharsets.UTF_8)
-            );
-            parser.parse(is);
-            return Optional.of(future.get());
-        } catch (MimeException | IOException | InterruptedException | ExecutionException e) {
-            return Optional.empty();
-        }
+//        try {
+//            var is = new ByteArrayInputStream(
+//                    data.getBytes(StandardCharsets.UTF_8)
+//            );
+//            parser.parse(is);
+//            return Optional.of(future.get());
+//        } catch (MimeException | IOException | InterruptedException | ExecutionException e) {
+//            return Optional.empty();
+//        }
+        return Optional.empty();
     }
 
     private static class SimplContentHandler implements ContentHandler {
-        private Mail.Builder builder;
+        private final Mail.Builder builder;
         private final CompletableFuture<Mail> future;
 
-        private SimplContentHandler(CompletableFuture<Mail> future) {
+        private SimplContentHandler(CompletableFuture<Mail> future, String recipient) {
             this.future = future;
-            builder = Mail.builder();
+            builder = Mail.builder().withTo(recipient);
         }
 
 
