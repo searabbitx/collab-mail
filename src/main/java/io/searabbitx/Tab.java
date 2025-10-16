@@ -8,15 +8,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Tab extends JPanel {
+    private final Adresses addresses;
+
     private JTable leftTable;
     private JTable rightTable;
     private JButton actionButton;
     private JButton removeButton;
 
-    public Tab() {
+    public Tab(Adresses addresses) {
         initializeComponents();
         setupLayout();
         setupEventHandlers();
+        this.addresses = addresses;
     }
 
     private void initializeComponents() {
@@ -39,10 +42,6 @@ public class Tab extends JPanel {
         rightTable = new JTable(rightModel);
         rightTable.setFillsViewportHeight(true);
         rightTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        // Add some sample data to right table
-        rightModel.addRow(new Object[]{"foo@example.com"});
-        rightModel.addRow(new Object[]{"bar@example.com"});
 
         // Initialize button
         actionButton = new JButton("Add address");
@@ -134,18 +133,17 @@ public class Tab extends JPanel {
         }
         // Confirm deletion
         DefaultTableModel model = (DefaultTableModel) rightTable.getModel();
-        String info = (String) model.getValueAt(selectedRow, 0);
-        String value = (String) model.getValueAt(selectedRow, 1);
+        String addr = (String) model.getValueAt(selectedRow, 0);
 
-        int result = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to remove this entry?\n" +
-                        "Info: " + info + "\n" +
-                        "Value: " + value,
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to remove this entry?\n" + addr,
                 "Confirm Removal",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
+            this.addresses.remove(addr);
             model.removeRow(selectedRow);
 
             // Select next row if available
@@ -219,10 +217,10 @@ public class Tab extends JPanel {
 
         // Button actions
         addButton.addActionListener(e -> {
-            String info = userField.getText().trim();
+            String username = userField.getText().trim();
 
-            if (!info.isEmpty()) {
-                addRightTableRow(new Object[]{info + "@something.example.com"});
+            if (!username.isEmpty()) {
+                addRightTableRow(new Object[]{this.addresses.generate(username)});
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,
