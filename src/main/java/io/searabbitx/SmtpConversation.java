@@ -1,19 +1,13 @@
 package io.searabbitx;
 
-import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.parser.ContentHandler;
-import org.apache.james.mime4j.parser.MimeStreamParser;
-import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.apache.james.mime4j.stream.Field;
+import jakarta.mail.Address;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import org.apache.commons.mail2.jakarta.util.MimeMessageParser;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,132 +15,44 @@ class SmtpConversation {
     private final String conversation;
 
     SmtpConversation(String conversation) {
-        Logger.log("SmtpConversation constructor");
         this.conversation = conversation;
+    }
+
+    private static Mail mimeParserToMail(MimeMessageParser parser) throws Exception {
+        var tos = parser.getTo().stream().map(Address::toString).toList();
+        return new Mail(
+                parser.getFrom(),
+                String.join(", ", tos),
+                parser.getSubject(),
+                parser.getPlainContent()
+        );
     }
 
     Optional<Mail> extractMail() {
         Logger.log("Received smtp connection");
-        var recipient = extractRecipient().orElse("???");
-        return extractDataCommand().flatMap(data -> parseData(data, recipient));
-    }
-
-    private Optional<String> extractRecipient() {
-        return extractRegex("RCPT TO\\s*:\\s<(.*)>\\s*\\r?\\n");
+        return extractDataCommand().flatMap(this::parseData);
     }
 
     private Optional<String> extractDataCommand() {
-        return extractRegex("DATA\\s*\\r?\\n354.*?\\r?\\n(.*?)\\r?\\n\\.\\r?\\n");
-    }
-
-    private Optional<String> extractRegex(String regex) {
         Pattern pattern = Pattern.compile(
-                regex,
+                "DATA\\s*\\r?\\n354.*?\\r?\\n(.*?)\\r?\\n\\.\\r?\\n",
                 Pattern.DOTALL | Pattern.CASE_INSENSITIVE
         );
         Matcher matcher = pattern.matcher(conversation);
         return matcher.find() ? Optional.of(matcher.group(1).trim()) : Optional.empty();
     }
 
-    private Optional<Mail> parseData(String data, String recipient) {
-        Logger.log("Parsing smtp data");
-        var parser = new MimeStreamParser();
-        CompletableFuture<Mail> future = new CompletableFuture<>();
-        parser.setContentHandler(new SimplContentHandler(future, recipient));
-
-//        try {
-//            var is = new ByteArrayInputStream(
-//                    data.getBytes(StandardCharsets.UTF_8)
-//            );
-//            parser.parse(is);
-//            return Optional.of(future.get());
-//        } catch (MimeException | IOException | InterruptedException | ExecutionException e) {
-//            return Optional.empty();
-//        }
-        return Optional.empty();
-    }
-
-    private static class SimplContentHandler implements ContentHandler {
-        private final Mail.Builder builder;
-        private final CompletableFuture<Mail> future;
-
-        private SimplContentHandler(CompletableFuture<Mail> future, String recipient) {
-            this.future = future;
-            builder = Mail.builder().withTo(recipient);
-        }
-
-
-        @Override
-        public void startMessage() throws MimeException {
-
-        }
-
-        @Override
-        public void endMessage() throws MimeException {
-            future.complete(builder.build());
-        }
-
-        @Override
-        public void startBodyPart() throws MimeException {
-
-        }
-
-        @Override
-        public void endBodyPart() throws MimeException {
-
-        }
-
-        @Override
-        public void startHeader() throws MimeException {
-
-        }
-
-        @Override
-        public void field(Field rawField) throws MimeException {
-            if (rawField.getNameLowerCase().equals("from")) {
-                builder.withFrom(rawField.getBody());
-            }
-        }
-
-        @Override
-        public void endHeader() throws MimeException {
-
-        }
-
-        @Override
-        public void preamble(InputStream is) throws MimeException, IOException {
-
-        }
-
-        @Override
-        public void epilogue(InputStream is) throws MimeException, IOException {
-
-        }
-
-        @Override
-        public void startMultipart(BodyDescriptor bd) throws MimeException {
-
-        }
-
-        @Override
-        public void endMultipart() throws MimeException {
-
-        }
-
-        @Override
-        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            for (int length; (length = is.read(buffer)) != -1; ) {
-                result.write(buffer, 0, length);
-            }
-            var body = result.toString(bd.getCharset());
-            builder.withBody(body);
-        }
-
-        @Override
-        public void raw(InputStream is) throws MimeException, IOException {
-
+    private Optional<Mail> parseData(String data) {
+        Properties props = new Properties();
+        Session session = Session.getDefaultInstance(props);
+        ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes());
+        try {
+            MimeMessage message = new MimeMessage(session, bis);
+            MimeMessageParser parser = new MimeMessageParser(message);
+            parser.parse();
+            return Optional.of(mimeParserToMail(parser));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

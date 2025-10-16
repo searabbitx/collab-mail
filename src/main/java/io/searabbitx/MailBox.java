@@ -27,29 +27,16 @@ class MailBox {
     }
 
     Stream<Mail> pollInteractions() {
-        Logger.log("Polling!");
-        var convos = client.getAllInteractions().stream()
-                .peek(_ -> Logger.log("Got some interaction"))
+        return client.getAllInteractions().stream()
                 .map(Interaction::smtpDetails)
                 .flatMap(Optional::stream)
                 .map(SmtpDetails::conversation)
-                .toList();
-
-        Logger.log("Parsing " + convos.size() + " convos");
-
-        var result = new ArrayList<Mail>();
-        for (var convo : convos) {
-            Logger.log("inside convos loop");
-            var parser = new SmtpConversation(convo);
-            Logger.log("SmtpConversation obj constructed");
-            parser.extractMail().ifPresent(result::add);
-            Logger.log("Mail extracted");
-        }
-
-        return result.stream();
+                .map(SmtpConversation::new)
+                .map(SmtpConversation::extractMail)
+                .flatMap(Optional::stream);
     }
 
-    public void remove(String add) {
+    void remove(String add) {
         this.book.removeIf(a -> a.toString().equals(add));
     }
 

@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Tab extends JPanel {
+class Tab extends JPanel {
     private static final int POLLING_PERIOD = 10;
 
     private final MailBox addresses;
@@ -24,7 +24,7 @@ public class Tab extends JPanel {
     private JButton removeButton;
     private JButton pollButton;
 
-    public Tab(MailBox addresses) {
+    Tab(MailBox addresses) {
         this.addresses = addresses;
 
         initializeComponents();
@@ -305,12 +305,12 @@ public class Tab extends JPanel {
         dialog.setVisible(true);
     }
 
-    public void addRightTableRow(Object[] rowData) {
+    private void addRightTableRow(Object[] rowData) {
         DefaultTableModel model = (DefaultTableModel) rightTable.getModel();
         model.addRow(rowData);
     }
 
-    public void addLeftTableRow(Mail mail) {
+    private void addLeftTableRow(Mail mail) {
         DefaultTableModel model = (DefaultTableModel) leftTable.getModel();
         model.addRow(new Object[]{mail.from(), mail.to(), mail.subject()});
     }
