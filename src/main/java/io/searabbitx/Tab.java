@@ -75,6 +75,7 @@ class Tab extends JPanel {
 
     private void restoreValues() {
         mailBox.addresses().forEach(this::addAddressTableRow);
+        mailBox.mails().forEach(this::addMessagesTableRow);
     }
 
     private void setupLayout() {

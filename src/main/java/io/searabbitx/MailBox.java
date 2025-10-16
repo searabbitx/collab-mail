@@ -27,6 +27,10 @@ class MailBox {
         return storage.fetchAddresses();
     }
 
+    Stream<Mail> mails() {
+        return storage.fetchMails();
+    }
+
     Stream<Mail> pollInteractions() {
         return client.getAllInteractions().stream()
                 .map(Interaction::smtpDetails)
@@ -34,7 +38,8 @@ class MailBox {
                 .map(SmtpDetails::conversation)
                 .map(SmtpConversation::new)
                 .map(SmtpConversation::extractMail)
-                .flatMap(Optional::stream);
+                .flatMap(Optional::stream)
+                .peek(storage::storeMail);
     }
 
     void remove(String add) {
