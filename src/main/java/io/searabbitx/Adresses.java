@@ -1,10 +1,11 @@
 package io.searabbitx;
 
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.collaborator.CollaboratorClient;
+import burp.api.montoya.collaborator.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Adresses {
     private CollaboratorClient client;
@@ -22,6 +23,13 @@ public class Adresses {
         return a.toString();
     }
 
+    public Stream<Mail> pollInteractions() {
+        return Stream.of(
+                new Mail("test@example.com", "test2@example.com", "Interaction 1 message", "Some content"),
+                new Mail("test2@example.com", "test3@example.com", "Interaction 2 message", "Some other content")
+        );
+    }
+
     public void remove(String add) {
         this.book.removeIf(a -> a.toString().equals(add));
     }
@@ -31,4 +39,6 @@ public class Adresses {
             return username + "@" + domain;
         }
     }
+
+    public record Mail(String from, String to, String topic, String content){}
 }

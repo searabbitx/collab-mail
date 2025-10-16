@@ -14,6 +14,7 @@ public class Tab extends JPanel {
     private JTable rightTable;
     private JButton actionButton;
     private JButton removeButton;
+    private JButton pollButton;
 
     public Tab(Adresses addresses) {
         initializeComponents();
@@ -31,8 +32,8 @@ public class Tab extends JPanel {
         leftTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Add some sample data to left table
-        leftModel.addRow(new Object[]{"test@example.com", "foo@example.com", "hello"});
-        leftModel.addRow(new Object[]{"test2@example.com", "bar@example.com", "hi"});
+        //leftModel.addRow(new Object[]{"test@example.com", "foo@example.com", "hello"});
+        //leftModel.addRow(new Object[]{"test2@example.com", "bar@example.com", "hi"});
 
         setupLeftTableColumnWidths();
 
@@ -107,23 +108,33 @@ public class Tab extends JPanel {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(10, 10, 10, 10);
-        add(splitPane, gbc);
+
+        JPanel pollButtonPane = new JPanel();
+        pollButtonPane.setLayout(new BorderLayout());
+        pollButtonPane.setPreferredSize(new Dimension(0, 30));
+        pollButton = new JButton("Poll now!");
+        pollButton.setMaximumSize(new Dimension(100, 30));
+        pollButton.setSize(new Dimension(100, 30));
+        pollButtonPane.add(pollButton, BorderLayout.WEST);
+
+        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane, splitPane);
+        verticalSplit.setResizeWeight(0);
+        verticalSplit.setOneTouchExpandable(true); // Add expand/collapse buttons
+        verticalSplit.setContinuousLayout(true); // Smooth resizing
+        verticalSplit.setDividerSize(8); // Set divider thickness
+
+        add(verticalSplit, gbc);
     }
 
     private void setupEventHandlers() {
-        actionButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showAddEntryDialog();
-            }
-        });
+        actionButton.addActionListener(_ -> showAddEntryDialog());
+        removeButton.addActionListener(_ -> removeSelectedEntry());
+        pollButton.addActionListener(_ -> pollMessages());
+    }
 
-        removeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                removeSelectedEntry();
-            }
-        });
+    private void pollMessages() {
+        clearLeftTable();
+        this.addresses.pollInteractions().forEach(this::addLeftTableRow);
     }
 
     private void removeSelectedEntry() {
@@ -255,15 +266,17 @@ public class Tab extends JPanel {
         dialog.setVisible(true);
     }
 
-    // Method to add data to right table
     public void addRightTableRow(Object[] rowData) {
         DefaultTableModel model = (DefaultTableModel) rightTable.getModel();
         model.addRow(rowData);
     }
 
-    // Method to clear tables
-    public void clearTables() {
+    public void addLeftTableRow(Adresses.Mail mail) {
+        DefaultTableModel model = (DefaultTableModel) leftTable.getModel();
+        model.addRow(new Object[]{mail.from(), mail.to(), mail.topic()});
+    }
+
+    private void clearLeftTable() {
         ((DefaultTableModel) leftTable.getModel()).setRowCount(0);
-        ((DefaultTableModel) rightTable.getModel()).setRowCount(0);
     }
 }
