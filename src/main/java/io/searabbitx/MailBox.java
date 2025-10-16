@@ -10,24 +10,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MailBox {
+class MailBox {
     private final CollaboratorClient client;
     private final List<Address> book;
 
-    public MailBox(MontoyaApi api) {
+    MailBox(MontoyaApi api) {
         this.client = api.collaborator().createClient();
         this.book = new ArrayList<>();
     }
 
-    public String generate(String username) {
+    String generate(String username) {
         var dom = client.generatePayload();
         var a = new Address(username, dom.toString());
         book.add(a);
         return a.toString();
     }
 
-    public Stream<Mail> pollInteractions() {
+    Stream<Mail> pollInteractions() {
+        Logger.log("Polling!");
         return client.getAllInteractions().stream()
+                .peek(_ -> Logger.log("Got some interaction"))
                 .map(Interaction::smtpDetails)
                 .flatMap(Optional::stream)
                 .map(SmtpDetails::conversation)

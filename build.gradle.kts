@@ -14,6 +14,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     compileOnly("net.portswigger.burp.extensions:montoya-api:2025.8")
+    compileOnly("org.apache.james:apache-mime4j-core:0.8.12")
 }
 
 tasks.test {

@@ -11,5 +11,8 @@ public class CollaboratorEnchancer implements BurpExtension {
         Logging logging = api.logging();
         logging.logToOutput("Initializing collab enchancer");
         api.userInterface().registerSuiteTab("CollabEnchancer", new Tab(new MailBox(api)));
+
+        Logger.logging = api.logging();
+        Logger.log("Logger initialized");
     }
 }
