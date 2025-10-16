@@ -2,6 +2,7 @@ package io.searabbitx;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,7 +12,6 @@ public class Tab extends JPanel {
     private JTable rightTable;
     private JButton actionButton;
     private JButton removeButton;
-    private JSplitPane splitPane;
 
     public Tab() {
         initializeComponents();
@@ -21,26 +21,28 @@ public class Tab extends JPanel {
 
     private void initializeComponents() {
         // Initialize left table (larger table)
-        String[] leftColumns = {"Column 1", "Column 2", "Column 3", "Column 4"};
+        String[] leftColumns = {"From", "To", "Title"};
         DefaultTableModel leftModel = new DefaultTableModel(leftColumns, 0);
         leftTable = new JTable(leftModel);
         leftTable.setFillsViewportHeight(true);
         leftTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Add some sample data to left table
-        leftModel.addRow(new Object[]{"Data 1", "Data 2", "Data 3", "Data 4"});
-        leftModel.addRow(new Object[]{"Sample 1", "Sample 2", "Sample 3", "Sample 4"});
+        leftModel.addRow(new Object[]{"test@example.com", "foo@example.com", "hello"});
+        leftModel.addRow(new Object[]{"test2@example.com", "bar@example.com", "hi"});
+
+        setupLeftTableColumnWidths();
 
         // Initialize right table (smaller table)
-        String[] rightColumns = {"Info", "Value"};
+        String[] rightColumns = {"Address"};
         DefaultTableModel rightModel = new DefaultTableModel(rightColumns, 0);
         rightTable = new JTable(rightModel);
         rightTable.setFillsViewportHeight(true);
         rightTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Add some sample data to right table
-        rightModel.addRow(new Object[]{"Status", "Active"});
-        rightModel.addRow(new Object[]{"Count", "2"});
+        rightModel.addRow(new Object[]{"foo@example.com"});
+        rightModel.addRow(new Object[]{"bar@example.com"});
 
         // Initialize button
         actionButton = new JButton("Add address");
@@ -93,7 +95,7 @@ public class Tab extends JPanel {
 
 
         // Create resizable split pane
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightPanel);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightPanel);
         splitPane.setResizeWeight(0.75); // Initially give 75% to left pane
         splitPane.setOneTouchExpandable(true); // Add expand/collapse buttons
         splitPane.setContinuousLayout(true); // Smooth resizing
@@ -155,19 +157,37 @@ public class Tab extends JPanel {
         }
     }
 
+    private void setupLeftTableColumnWidths() {
+        final int max = 200;
+        final int min = 150;
+        // Set initial widths for From and To columns (200px each), but allow resizing
+        TableColumn fromColumn = leftTable.getColumnModel().getColumn(0);
+        fromColumn.setPreferredWidth(max); // Initial width
+        fromColumn.setMinWidth(min); // Minimum width to prevent too small
+        // No max width set - allows user to resize wider than 200px
+
+        TableColumn toColumn = leftTable.getColumnModel().getColumn(1);
+        toColumn.setPreferredWidth(max); // Initial width
+        toColumn.setMinWidth(min); // Minimum width to prevent too small
+        // No max width set - allows user to resize wider than 200px
+
+        // Title column will take remaining space
+        TableColumn titleColumn = leftTable.getColumnModel().getColumn(2);
+        titleColumn.setPreferredWidth(max); // Initial preferred width
+        titleColumn.setMinWidth(min); // Minimum width
+    }
+
     private void showAddEntryDialog() {
         // Create input dialog for Info and Value
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add New Entry", true);
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add New User", true);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Create input fields
-        JTextField infoField = new JTextField(20);
-        JTextField valueField = new JTextField(20);
+        JTextField userField = new JTextField(20);
 
         // Create labels
-        JLabel infoLabel = new JLabel("Info:");
-        JLabel valueLabel = new JLabel("Value:");
+        JLabel infoLabel = new JLabel("Username:");
 
         // Create buttons
         JButton addButton = new JButton("Add");
@@ -178,49 +198,37 @@ public class Tab extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Info label and field
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         dialog.add(infoLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        dialog.add(infoField, gbc);
-
-        // Value label and field
-        gbc.gridx = 0; gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        dialog.add(valueLabel, gbc);
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        dialog.add(valueField, gbc);
+        dialog.add(userField, gbc);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(addButton);
         buttonPanel.add(cancelButton);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         dialog.add(buttonPanel, gbc);
 
         // Button actions
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String info = infoField.getText().trim();
-                String value = valueField.getText().trim();
+        addButton.addActionListener(e -> {
+            String info = userField.getText().trim();
 
-                if (!info.isEmpty() && !value.isEmpty()) {
-                    addRightTableRow(new Object[]{info, value});
-                    dialog.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(dialog,
-                            "Please enter both Info and Value.",
-                            "Missing Information",
-                            JOptionPane.WARNING_MESSAGE);
-                }
+            if (!info.isEmpty()) {
+                addRightTableRow(new Object[]{info + "@something.example.com"});
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                        "Please enter username",
+                        "Missing Information",
+                        JOptionPane.WARNING_MESSAGE);
             }
         });
 
@@ -238,7 +246,7 @@ public class Tab extends JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                infoField.requestFocus();
+                userField.requestFocus();
             }
         });
 
