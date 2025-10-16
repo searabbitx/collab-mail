@@ -65,8 +65,9 @@ class Tab extends JPanel {
         rightTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Initialize button
-        actionButton = new JButton("Add address");
-        removeButton = new JButton("Remove Entry");
+        actionButton = new JButton("Add");
+        removeButton = new JButton("Remove");
+        pollButton = new JButton("Poll now!");
     }
 
     private void setupLayout() {
@@ -79,44 +80,37 @@ class Tab extends JPanel {
         leftScrollPane.setMinimumSize(new Dimension(300, 400));
         leftScrollPane.setPreferredSize(new Dimension(600, 400));
 
-        // Create right panel with table and button
-        JPanel rightPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints rightGbc = new GridBagConstraints();
-
         // Right table scroll pane
         JScrollPane rightScrollPane = new JScrollPane(rightTable);
-        rightScrollPane.setBorder(BorderFactory.createTitledBorder("Addresses"));
-        rightScrollPane.setMinimumSize(new Dimension(200, 300));
-        rightScrollPane.setPreferredSize(new Dimension(250, 350));
-
-        // Add right table to right panel
-        rightGbc.gridx = 0;
-        rightGbc.gridy = 0;
-        rightGbc.gridwidth = 2;
-        rightGbc.weightx = 1.0;
-        rightGbc.weighty = 1.0;
-        rightGbc.fill = GridBagConstraints.BOTH;
-        rightGbc.insets = new Insets(5, 5, 5, 5);
-        rightPanel.add(rightScrollPane, rightGbc);
+        rightScrollPane.setPreferredSize(new Dimension(250, 200));
 
         // Create button panel with both buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
-        buttonPanel.add(actionButton);
-        buttonPanel.add(removeButton);
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        var buttonGbc = new GridBagConstraints();
+        buttonGbc.gridy = 0;
+        buttonGbc.gridx = 0;
+        buttonGbc.fill = GridBagConstraints.HORIZONTAL;
+        buttonGbc.anchor = GridBagConstraints.NORTH;
+        buttonGbc.weightx = 1.0;
+        buttonGbc.weighty = 0;
+        buttonGbc.insets = new Insets(5, 10, 5, 10);
+        buttonPanel.add(actionButton, buttonGbc);
+        buttonGbc.gridy = 1;
+        buttonPanel.add(removeButton, buttonGbc);
+        buttonGbc.weighty = 2.0;
+        buttonPanel.add(new JPanel(), buttonGbc);
 
-        // Add button panel to right panel
-        rightGbc.gridy = 1;
-        rightGbc.gridwidth = 2;
-        rightGbc.weighty = 0.0;
-        rightGbc.fill = GridBagConstraints.HORIZONTAL;
-        rightGbc.anchor = GridBagConstraints.SOUTH;
-        rightGbc.insets = new Insets(0, 5, 5, 5);
-        rightPanel.add(buttonPanel, rightGbc);
+        JSplitPane rightPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonPanel, rightScrollPane);
+        rightPanel.setResizeWeight(0.10);
+        rightPanel.setOneTouchExpandable(true); // Add expand/collapse buttons
+        rightPanel.setContinuousLayout(true); // Smooth resizing
+        rightPanel.setDividerSize(8); // Set divider thickness
+        rightPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
 
 
         // Create resizable split pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightPanel);
-        splitPane.setResizeWeight(0.75); // Initially give 75% to left pane
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rightPanel, leftScrollPane);
+        splitPane.setResizeWeight(0.10); // Initially give 75% to left pane
         splitPane.setOneTouchExpandable(true); // Add expand/collapse buttons
         splitPane.setContinuousLayout(true); // Smooth resizing
         splitPane.setDividerSize(8); // Set divider thickness
@@ -130,17 +124,17 @@ class Tab extends JPanel {
         gbc.insets = new Insets(10, 10, 10, 10);
 
         JPanel pollButtonPane = new JPanel();
-        pollButtonPane.setLayout(new BorderLayout());
+        pollButtonPane.setLayout(new BoxLayout(pollButtonPane, BoxLayout.X_AXIS));
         pollButtonPane.setPreferredSize(new Dimension(0, 30));
-        pollButton = new JButton("Poll now!");
         pollButton.setMaximumSize(new Dimension(100, 30));
         pollButton.setSize(new Dimension(100, 30));
-        pollButtonPane.add(pollButton, BorderLayout.WEST);
+        pollButtonPane.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+        pollButtonPane.add(pollButton);
 
         var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane, splitPane);
         verticalSplit.setResizeWeight(0);
-        verticalSplit.setOneTouchExpandable(true); // Add expand/collapse buttons
-        verticalSplit.setContinuousLayout(true); // Smooth resizing
+//        verticalSplit.setOneTouchExpandable(true); // Add expand/collapse buttons
+//        verticalSplit.setContinuousLayout(true); // Smooth resizing
         verticalSplit.setDividerSize(8); // Set divider thickness
 
         add(verticalSplit, gbc);
