@@ -1,37 +1,38 @@
-package io.searabbitx;
+package io.searabbitx.mail;
 
 import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.Interaction;
 import burp.api.montoya.collaborator.SmtpDetails;
+import io.searabbitx.storage.Storage;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class MailBox {
+public class MailBox {
     private final CollaboratorClient client;
     private final Storage storage;
 
-    MailBox(Storage storage) {
+    public MailBox(Storage storage) {
         this.storage = storage;
         this.client = storage.fetchClient();
     }
 
-    String generate(String username) {
+    public String generate(String username) {
         var dom = client.generatePayload();
         var a = new Address(username, dom.toString());
         storage.storeAddress(a.toString());
         return a.toString();
     }
 
-    Stream<String> addresses() {
+    public Stream<String> addresses() {
         return storage.fetchAddresses();
     }
 
-    Stream<Mail> mails() {
+    public Stream<Mail> mails() {
         return storage.fetchMails();
     }
 
-    Stream<Mail> pollInteractions() {
+    public Stream<Mail> pollInteractions() {
         return client.getAllInteractions().stream()
                 .map(Interaction::smtpDetails)
                 .flatMap(Optional::stream)
@@ -42,7 +43,7 @@ class MailBox {
                 .peek(storage::storeMail);
     }
 
-    void remove(String add) {
+    public void remove(String add) {
         this.storage.removeAddress(add);
     }
 

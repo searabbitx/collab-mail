@@ -1,24 +1,26 @@
-package io.searabbitx;
+package io.searabbitx.storage;
 
 import burp.api.montoya.collaborator.Collaborator;
 import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.SecretKey;
 import burp.api.montoya.persistence.PersistedList;
 import burp.api.montoya.persistence.PersistedObject;
+import io.searabbitx.mail.Mail;
 
 import java.io.*;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-class Storage {
+public class Storage {
     private static final String ADDRESSES_KEY = "addresses";
     private static final String MAILS_KEY = "mails";
     private static final String COLLAB_CLIENT = "collab-client";
 
-    private PersistedObject data;
-    private Collaborator collaborator;
+    private final PersistedObject data;
+    private final Collaborator collaborator;
 
-    Storage(PersistedObject data, Collaborator collaborator) {
+    public Storage(PersistedObject data, Collaborator collaborator) {
         this.data = data;
         this.collaborator = collaborator;
     }
@@ -35,23 +37,23 @@ class Storage {
         return Base64.getEncoder().encodeToString(baos.toByteArray());
     }
 
-    private static Mail encodeMail(String enc) {
+    private static Optional<Mail> decodeMail(String enc) {
         byte[] data = Base64.getDecoder().decode(enc);
         try (
                 var ois = new ObjectInputStream(new ByteArrayInputStream(data))
         ) {
             // TODO: safe deserialization. Although if some can control your project file they can inject code in a different way too
-            return (Mail) ois.readObject();
+            return Optional.of((Mail) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            return Optional.empty();
         }
     }
 
-    void storeAddress(String address) {
+    public void storeAddress(String address) {
         persistedAddressList().add(address);
     }
 
-    void removeAddress(String add) {
+    public void removeAddress(String add) {
         persistedAddressList().removeIf(add::equals);
     }
 
@@ -59,17 +61,18 @@ class Storage {
         data.setString(COLLAB_CLIENT, client.getSecretKey().toString());
     }
 
-    void storeMail(Mail mail) {
+    public void storeMail(Mail mail) {
         var encoded = encodeMail(mail);
         persistedMailList().add(encoded);
     }
 
-    Stream<Mail> fetchMails() {
+    public Stream<Mail> fetchMails() {
         return persistedMailList().stream()
-                .map(Storage::encodeMail);
+                .map(Storage::decodeMail)
+                .flatMap(Optional::stream);
     }
 
-    CollaboratorClient fetchClient() {
+    public CollaboratorClient fetchClient() {
         var key = data.getString(COLLAB_CLIENT);
         if (null == key) {
             var client = collaborator.createClient();
@@ -79,7 +82,7 @@ class Storage {
         return collaborator.restoreClient(SecretKey.secretKey(key));
     }
 
-    Stream<String> fetchAddresses() {
+    public Stream<String> fetchAddresses() {
         return persistedAddressList().stream();
     }
 

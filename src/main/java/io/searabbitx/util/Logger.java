@@ -1,13 +1,13 @@
-package io.searabbitx;
+package io.searabbitx.util;
 
 import burp.api.montoya.logging.Logging;
 
 import java.time.LocalDateTime;
 
-class Logger {
-    static Logging logging;
+public class Logger {
+    public static Logging logging;
 
-    static void log(String msg) {
+    public static void log(String msg) {
         logging.logToOutput("[" + LocalDateTime.now() + "] " + msg);
     }
 

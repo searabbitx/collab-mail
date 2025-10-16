@@ -1,5 +1,6 @@
-package io.searabbitx;
+package io.searabbitx.mail;
 
+import io.searabbitx.util.Logger;
 import jakarta.mail.Address;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;

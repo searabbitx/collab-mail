@@ -2,6 +2,10 @@ package io.searabbitx;
 
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
+import io.searabbitx.mail.MailBox;
+import io.searabbitx.storage.Storage;
+import io.searabbitx.ui.Tab;
+import io.searabbitx.util.Logger;
 
 public class CollabMail implements BurpExtension {
     @Override

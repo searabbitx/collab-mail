@@ -1,4 +1,7 @@
-package io.searabbitx;
+package io.searabbitx.ui;
+
+import io.searabbitx.mail.Mail;
+import io.searabbitx.mail.MailBox;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class Tab extends JPanel {
+public class Tab extends JPanel {
     private static final int POLLING_PERIOD = 10;
 
     private final MailBox mailBox;
@@ -24,7 +27,7 @@ class Tab extends JPanel {
     private JButton removeButton;
     private JButton pollButton;
 
-    Tab(MailBox mailBox) {
+    public Tab(MailBox mailBox) {
         this.mailBox = mailBox;
 
         initializeComponents();
