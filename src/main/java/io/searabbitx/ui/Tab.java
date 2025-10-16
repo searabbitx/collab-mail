@@ -26,6 +26,8 @@ public class Tab extends JPanel {
     private JButton actionButton;
     private JButton removeButton;
     private JButton pollButton;
+    private JButton clearButton;
+    private JButton removeMessageButton;
 
     public Tab(MailBox mailBox) {
         this.mailBox = mailBox;
@@ -72,6 +74,8 @@ public class Tab extends JPanel {
         actionButton = new JButton("Add");
         removeButton = new JButton("Remove");
         pollButton = new JButton("Poll now!");
+        clearButton = new JButton("Clear");
+        removeMessageButton = new JButton("Remove selected");
 
         restoreValues();
     }
@@ -85,13 +89,8 @@ public class Tab extends JPanel {
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // Create left panel with scroll pane
-        JScrollPane messagesScrollPane = new JScrollPane(messagesTable);
-        messagesScrollPane.setBorder(BorderFactory.createTitledBorder("Inbox"));
-        messagesScrollPane.setMinimumSize(new Dimension(300, 400));
-        messagesScrollPane.setPreferredSize(new Dimension(600, 400));
+        var messagesPane = createMessagesPane();
 
-        // Right table scroll pane
         JScrollPane addressScrollPane = new JScrollPane(addressTable);
         addressScrollPane.setPreferredSize(new Dimension(250, 200));
 
@@ -120,7 +119,7 @@ public class Tab extends JPanel {
 
 
         // Create resizable split pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPanel, messagesScrollPane);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPanel, messagesPane);
         splitPane.setResizeWeight(0.10); // Initially give 75% to left pane
         splitPane.setOneTouchExpandable(true); // Add expand/collapse buttons
         splitPane.setContinuousLayout(true); // Smooth resizing
@@ -151,10 +150,51 @@ public class Tab extends JPanel {
         add(verticalSplit, gbc);
     }
 
+    private Component createMessagesPane() {
+        var main = new JPanel(new GridBagLayout());
+
+        var gbc = new GridBagConstraints();
+
+        var buttonPanel = new JPanel(new GridBagLayout());
+        var buttonGbc = new GridBagConstraints();
+        buttonGbc.gridy = 0;
+        buttonGbc.gridx = 0;
+        buttonGbc.fill = GridBagConstraints.HORIZONTAL;
+        buttonGbc.anchor = GridBagConstraints.NORTH;
+        buttonGbc.weightx = 1.0;
+        buttonGbc.weighty = 0;
+        buttonGbc.insets = new Insets(5, 0, 5, 5);
+        buttonPanel.add(clearButton, buttonGbc);
+        buttonGbc.gridx = 1;
+        buttonPanel.add(removeMessageButton, buttonGbc);
+
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0;
+        main.add(buttonPanel, gbc);
+
+        JScrollPane messagesScrollPane = new JScrollPane(messagesTable);
+        messagesScrollPane.setMinimumSize(new Dimension(300, 400));
+        messagesScrollPane.setPreferredSize(new Dimension(600, 400));
+        gbc.weighty = 2.0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        main.add(messagesScrollPane, gbc);
+
+        main.setBorder(BorderFactory.createTitledBorder("Inbox"));
+
+        return main;
+    }
+
     private void setupEventHandlers() {
         actionButton.addActionListener(_ -> showAddEntryDialog());
         removeButton.addActionListener(_ -> removeSelectedEntry());
         pollButton.addActionListener(_ -> pollMessages());
+        clearButton.addActionListener(_ -> clearMessages());
+        removeMessageButton.addActionListener(_ -> removeMessage());
 
         var mouseAdapter = new MouseAdapter() {
             public void mousePressed(MouseEvent mouseEvent) {
@@ -187,6 +227,40 @@ public class Tab extends JPanel {
         messagesTable.addMouseListener(mouseAdapter);
     }
 
+    private void clearMessages() {
+        this.mailBox.clearMails();
+        this.clearMessagesTable();
+    }
+
+    private void removeMessage() {
+        int selectedRow = messagesTable.getSelectedRow();
+        if (selectedRow < 0) {
+            return;
+        }
+        // Confirm deletion
+        var model = (MessageTableModel) messagesTable.getModel();
+        var mail = model.getMessageAt(selectedRow);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to remove this entry?\n'" + mail.subject() + "'",
+                "Confirm Removal",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (result == JOptionPane.YES_OPTION) {
+            this.mailBox.removeMail(mail);
+            model.popMessageAt(selectedRow);
+
+            // Select next row if available
+            int rowCount = model.getRowCount();
+            if (rowCount > 0) {
+                int newSelection = Math.min(selectedRow, rowCount - 1);
+                addressTable.setRowSelectionInterval(newSelection, newSelection);
+            }
+        }
+    }
+
     private void pollMessages() {
         this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
     }
@@ -208,7 +282,7 @@ public class Tab extends JPanel {
                 JOptionPane.QUESTION_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            this.mailBox.remove(addr);
+            this.mailBox.removeAddress(addr);
             model.removeRow(selectedRow);
 
             // Select next row if available

@@ -43,8 +43,16 @@ public class MailBox {
                 .peek(storage::storeMail);
     }
 
-    public void remove(String add) {
+    public void removeAddress(String add) {
         this.storage.removeAddress(add);
+    }
+
+    public void clearMails() {
+        this.storage.clearMails();
+    }
+
+    public void removeMail(Mail mail) {
+        this.storage.removeMail(mail);
     }
 
     private record Address(String username, String domain) {

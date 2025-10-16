@@ -72,6 +72,10 @@ public class Storage {
                 .flatMap(Optional::stream);
     }
 
+    public void clearMails() {
+        persistedMailList().clear();
+    }
+
     public CollaboratorClient fetchClient() {
         var key = data.getString(COLLAB_CLIENT);
         if (null == key) {
@@ -98,5 +102,9 @@ public class Storage {
             data.setStringList(MAILS_KEY, PersistedList.persistedStringList());
         }
         return data.getStringList(MAILS_KEY);
+    }
+
+    public void removeMail(Mail mail) {
+        persistedMailList().removeIf(m -> m.equals(encodeMail(mail)));
     }
 }
