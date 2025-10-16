@@ -54,7 +54,10 @@ public class Storage {
     }
 
     public void removeAddress(String add) {
-        persistedAddressList().removeIf(add::equals);
+        var perAdd = persistedAddressList();
+        var filtered = perAdd.stream().filter(o -> !o.equals(add)).toList();
+        perAdd.clear();
+        perAdd.addAll(filtered);
     }
 
     void storeClient(CollaboratorClient client) {
@@ -74,6 +77,14 @@ public class Storage {
 
     public void clearMails() {
         persistedMailList().clear();
+    }
+
+    public void removeMailAt(int row) {
+        var mail = persistedMailList().get(row);
+        var perMail = persistedMailList();
+        var filtered = perMail.stream().filter(o -> !o.equals(mail)).toList();
+        perMail.clear();
+        perMail.addAll(filtered);
     }
 
     public CollaboratorClient fetchClient() {
@@ -102,9 +113,5 @@ public class Storage {
             data.setStringList(MAILS_KEY, PersistedList.persistedStringList());
         }
         return data.getStringList(MAILS_KEY);
-    }
-
-    public void removeMail(Mail mail) {
-        persistedMailList().removeIf(m -> m.equals(encodeMail(mail)));
     }
 }

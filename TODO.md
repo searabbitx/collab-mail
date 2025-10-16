@@ -7,3 +7,7 @@
 - [ ] clear all messages
 - [ ] refactor Tab, please...
 - [ ] close value copied popup after 4 sec
+
+# Bugs
+- [ ] Handle multiple emails from one conversation (when they're sent shortly after)!!!
+- [ ] removed addresses should be ignored when a message arrives!

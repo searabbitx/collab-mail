@@ -51,8 +51,8 @@ public class MailBox {
         this.storage.clearMails();
     }
 
-    public void removeMail(Mail mail) {
-        this.storage.removeMail(mail);
+    public void removeMailAt(int row) {
+        this.storage.removeMailAt(row);
     }
 
     private record Address(String username, String domain) {

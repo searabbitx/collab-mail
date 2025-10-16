@@ -45,7 +45,7 @@ public class Tab extends JPanel {
 
     private void initializeComponents() {
         // Initialize left table (larger table)
-        String[] messagesColumns = {"From", "To", "Title", "Body"};
+        String[] messagesColumns = {"From", "To", "Subject", "Body"};
         DefaultTableModel messagesModel = new DefaultTableModel(messagesColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -191,10 +191,10 @@ public class Tab extends JPanel {
 
     private void setupEventHandlers() {
         actionButton.addActionListener(_ -> showAddEntryDialog());
-        removeButton.addActionListener(_ -> removeSelectedEntry());
+        removeButton.addActionListener(_ -> removeSelectedAddress());
         pollButton.addActionListener(_ -> pollMessages());
         clearButton.addActionListener(_ -> clearMessages());
-        removeMessageButton.addActionListener(_ -> removeMessage());
+        removeMessageButton.addActionListener(_ -> removeSelectedMail());
 
         var mouseAdapter = new MouseAdapter() {
             public void mousePressed(MouseEvent mouseEvent) {
@@ -232,31 +232,31 @@ public class Tab extends JPanel {
         this.clearMessagesTable();
     }
 
-    private void removeMessage() {
+    private void removeSelectedMail() {
         int selectedRow = messagesTable.getSelectedRow();
         if (selectedRow < 0) {
             return;
         }
         // Confirm deletion
-        var model = (MessageTableModel) messagesTable.getModel();
-        var mail = model.getMessageAt(selectedRow);
+        var model = (DefaultTableModel) messagesTable.getModel();
+        var subject = model.getValueAt(selectedRow, 2);
 
         int result = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to remove this entry?\n'" + mail.subject() + "'",
+                "Are you sure you want to remove this entry?\n'" + subject + "'",
                 "Confirm Removal",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            this.mailBox.removeMail(mail);
-            model.popMessageAt(selectedRow);
+            this.mailBox.removeMailAt(selectedRow);
+            model.removeRow(selectedRow);
 
             // Select next row if available
             int rowCount = model.getRowCount();
             if (rowCount > 0) {
                 int newSelection = Math.min(selectedRow, rowCount - 1);
-                addressTable.setRowSelectionInterval(newSelection, newSelection);
+                messagesTable.setRowSelectionInterval(newSelection, newSelection);
             }
         }
     }
@@ -265,7 +265,7 @@ public class Tab extends JPanel {
         this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
     }
 
-    private void removeSelectedEntry() {
+    private void removeSelectedAddress() {
         int selectedRow = addressTable.getSelectedRow();
         if (selectedRow < 0) {
             return;
@@ -404,7 +404,7 @@ public class Tab extends JPanel {
         model.addRow(new Object[]{mail.from(), mail.to(), mail.subject(), mail.plainContent()});
     }
 
-    private void clearLeftTable() {
+    private void clearMessagesTable() {
         ((DefaultTableModel) messagesTable.getModel()).setRowCount(0);
     }
 }
