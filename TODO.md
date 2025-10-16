@@ -10,4 +10,4 @@
 
 # Bugs
 - [ ] Handle multiple emails from one conversation (when they're sent shortly after)!!!
-- [ ] removed addresses should be ignored when a message arrives!
+- [ ] Confirmation dialog for 'Clear' action

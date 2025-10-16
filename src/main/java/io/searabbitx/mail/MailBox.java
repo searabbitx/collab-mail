@@ -40,6 +40,7 @@ public class MailBox {
                 .map(SmtpConversation::new)
                 .map(SmtpConversation::extractMail)
                 .flatMap(Optional::stream)
+                .filter(mail -> addresses().anyMatch(mail.to()::contains))
                 .peek(storage::storeMail);
     }
 
@@ -56,6 +57,7 @@ public class MailBox {
     }
 
     private record Address(String username, String domain) {
+        @SuppressWarnings("NullableProblems")
         @Override
         public String toString() {
             return username + "@" + domain;
