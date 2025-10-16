@@ -18,8 +18,8 @@ class Tab extends JPanel {
 
     private final MailBox addresses;
 
-    private JTable leftTable;
-    private JTable rightTable;
+    private JTable messagesTable;
+    private JTable addressTable;
     private JButton actionButton;
     private JButton removeButton;
     private JButton pollButton;
@@ -40,29 +40,30 @@ class Tab extends JPanel {
 
     private void initializeComponents() {
         // Initialize left table (larger table)
-        String[] leftColumns = {"From", "To", "Title"};
-        DefaultTableModel leftModel = new DefaultTableModel(leftColumns, 0);
-        leftTable = new JTable(leftModel);
-        leftTable.setFillsViewportHeight(true);
-        leftTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        // Add some sample data to left table
-        //leftModel.addRow(new Object[]{"test@example.com", "foo@example.com", "hello"});
-        //leftModel.addRow(new Object[]{"test2@example.com", "bar@example.com", "hi"});
-
-        setupLeftTableColumnWidths();
-
-        // Initialize right table (smaller table)
-        String[] rightColumns = {"Address"};
-        DefaultTableModel rightModel = new DefaultTableModel(rightColumns, 0) {
+        String[] messagesColumns = {"From", "To", "Title", "Body"};
+        DefaultTableModel messagesModel = new DefaultTableModel(messagesColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        rightTable = new JTable(rightModel);
-        rightTable.setFillsViewportHeight(true);
-        rightTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        messagesTable = new JTable(messagesModel);
+        messagesTable.setFillsViewportHeight(true);
+        messagesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        setupLeftTableColumnWidths();
+
+        // Initialize right table (smaller table)
+        String[] addressesColumns = {"Address"};
+        DefaultTableModel rightModel = new DefaultTableModel(addressesColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        addressTable = new JTable(rightModel);
+        addressTable.setFillsViewportHeight(true);
+        addressTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Initialize button
         actionButton = new JButton("Add");
@@ -75,14 +76,14 @@ class Tab extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Create left panel with scroll pane
-        JScrollPane leftScrollPane = new JScrollPane(leftTable);
-        leftScrollPane.setBorder(BorderFactory.createTitledBorder("Inbox"));
-        leftScrollPane.setMinimumSize(new Dimension(300, 400));
-        leftScrollPane.setPreferredSize(new Dimension(600, 400));
+        JScrollPane messagesScrollPane = new JScrollPane(messagesTable);
+        messagesScrollPane.setBorder(BorderFactory.createTitledBorder("Inbox"));
+        messagesScrollPane.setMinimumSize(new Dimension(300, 400));
+        messagesScrollPane.setPreferredSize(new Dimension(600, 400));
 
         // Right table scroll pane
-        JScrollPane rightScrollPane = new JScrollPane(rightTable);
-        rightScrollPane.setPreferredSize(new Dimension(250, 200));
+        JScrollPane addressScrollPane = new JScrollPane(addressTable);
+        addressScrollPane.setPreferredSize(new Dimension(250, 200));
 
         // Create button panel with both buttons
         JPanel buttonPanel = new JPanel(new GridBagLayout());
@@ -100,16 +101,16 @@ class Tab extends JPanel {
         buttonGbc.weighty = 2.0;
         buttonPanel.add(new JPanel(), buttonGbc);
 
-        JSplitPane rightPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonPanel, rightScrollPane);
-        rightPanel.setResizeWeight(0.10);
-        rightPanel.setOneTouchExpandable(true); // Add expand/collapse buttons
-        rightPanel.setContinuousLayout(true); // Smooth resizing
-        rightPanel.setDividerSize(8); // Set divider thickness
-        rightPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
+        JSplitPane addressPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonPanel, addressScrollPane);
+        addressPanel.setResizeWeight(0.10);
+        addressPanel.setOneTouchExpandable(true); // Add expand/collapse buttons
+        addressPanel.setContinuousLayout(true); // Smooth resizing
+        addressPanel.setDividerSize(8); // Set divider thickness
+        addressPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
 
 
         // Create resizable split pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rightPanel, leftScrollPane);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPanel, messagesScrollPane);
         splitPane.setResizeWeight(0.10); // Initially give 75% to left pane
         splitPane.setOneTouchExpandable(true); // Add expand/collapse buttons
         splitPane.setContinuousLayout(true); // Smooth resizing
@@ -144,39 +145,49 @@ class Tab extends JPanel {
         actionButton.addActionListener(_ -> showAddEntryDialog());
         removeButton.addActionListener(_ -> removeSelectedEntry());
         pollButton.addActionListener(_ -> pollMessages());
-        rightTable.addMouseListener(new MouseAdapter() {
+
+        var mouseAdapter = new MouseAdapter() {
             public void mousePressed(MouseEvent mouseEvent) {
                 JTable table = (JTable) mouseEvent.getSource();
                 Point point = mouseEvent.getPoint();
                 int row = table.rowAtPoint(point);
-                if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && row != -1) {
+                int col = table.columnAtPoint(point);
+                if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && table.getSelectedColumn() != -1 && row != -1 && col != -1) {
                     int modelRow = table.convertRowIndexToModel(row);
-                    String addr = (String) table.getModel().getValueAt(modelRow, 0);
+                    int modelCol = table.convertColumnIndexToModel(col);
+                    String val = (String) table.getModel().getValueAt(modelRow, modelCol);
+                    String dispVal = val.replaceAll("\n", " ");
+                    if (dispVal.length() > 50) {
+                        dispVal = dispVal.substring(0, 47) + "...";
+                    }
                     Toolkit.getDefaultToolkit()
                             .getSystemClipboard()
-                            .setContents(new StringSelection(addr), null);
+                            .setContents(new StringSelection(val), null);
                     JOptionPane.showConfirmDialog(
                             table,
-                            addr + " copied to clipboard",
-                            "Address copied",
+                            "'" + dispVal + "' copied to clipboard",
+                            "Value copied",
                             JOptionPane.DEFAULT_OPTION,
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-        });
+        };
+
+        addressTable.addMouseListener(mouseAdapter);
+        messagesTable.addMouseListener(mouseAdapter);
     }
 
     private void pollMessages() {
-        this.addresses.pollInteractions().forEach(this::addLeftTableRow);
+        this.addresses.pollInteractions().forEach(this::addMessagesTableRow);
     }
 
     private void removeSelectedEntry() {
-        int selectedRow = rightTable.getSelectedRow();
+        int selectedRow = addressTable.getSelectedRow();
         if (selectedRow < 0) {
             return;
         }
         // Confirm deletion
-        DefaultTableModel model = (DefaultTableModel) rightTable.getModel();
+        DefaultTableModel model = (DefaultTableModel) addressTable.getModel();
         String addr = (String) model.getValueAt(selectedRow, 0);
 
         int result = JOptionPane.showConfirmDialog(
@@ -194,7 +205,7 @@ class Tab extends JPanel {
             int rowCount = model.getRowCount();
             if (rowCount > 0) {
                 int newSelection = Math.min(selectedRow, rowCount - 1);
-                rightTable.setRowSelectionInterval(newSelection, newSelection);
+                addressTable.setRowSelectionInterval(newSelection, newSelection);
             }
         }
     }
@@ -203,18 +214,18 @@ class Tab extends JPanel {
         final int max = 200;
         final int min = 150;
         // Set initial widths for From and To columns (200px each), but allow resizing
-        TableColumn fromColumn = leftTable.getColumnModel().getColumn(0);
+        TableColumn fromColumn = messagesTable.getColumnModel().getColumn(0);
         fromColumn.setPreferredWidth(max); // Initial width
         fromColumn.setMinWidth(min); // Minimum width to prevent too small
         // No max width set - allows user to resize wider than 200px
 
-        TableColumn toColumn = leftTable.getColumnModel().getColumn(1);
+        TableColumn toColumn = messagesTable.getColumnModel().getColumn(1);
         toColumn.setPreferredWidth(max); // Initial width
         toColumn.setMinWidth(min); // Minimum width to prevent too small
         // No max width set - allows user to resize wider than 200px
 
         // Title column will take remaining space
-        TableColumn titleColumn = leftTable.getColumnModel().getColumn(2);
+        TableColumn titleColumn = messagesTable.getColumnModel().getColumn(2);
         titleColumn.setPreferredWidth(max); // Initial preferred width
         titleColumn.setMinWidth(min); // Minimum width
     }
@@ -264,7 +275,7 @@ class Tab extends JPanel {
             String username = userField.getText().trim();
 
             if (!username.isEmpty()) {
-                addRightTableRow(new Object[]{this.addresses.generate(username)});
+                addAddressTableRow(this.addresses.generate(username));
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,
@@ -299,17 +310,17 @@ class Tab extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void addRightTableRow(Object[] rowData) {
-        DefaultTableModel model = (DefaultTableModel) rightTable.getModel();
-        model.addRow(rowData);
+    private void addAddressTableRow(String address) {
+        DefaultTableModel model = (DefaultTableModel) addressTable.getModel();
+        model.addRow(new Object[]{address});
     }
 
-    private void addLeftTableRow(Mail mail) {
-        DefaultTableModel model = (DefaultTableModel) leftTable.getModel();
-        model.addRow(new Object[]{mail.from(), mail.to(), mail.subject()});
+    private void addMessagesTableRow(Mail mail) {
+        DefaultTableModel model = (DefaultTableModel) messagesTable.getModel();
+        model.addRow(new Object[]{mail.from(), mail.to(), mail.subject(), mail.plainContent()});
     }
 
     private void clearLeftTable() {
-        ((DefaultTableModel) leftTable.getModel()).setRowCount(0);
+        ((DefaultTableModel) messagesTable.getModel()).setRowCount(0);
     }
 }

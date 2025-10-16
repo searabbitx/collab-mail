@@ -1,1 +1,1 @@
-rootProject.name = "collaborator-enchancer"
+rootProject.name = "collab-mail"
