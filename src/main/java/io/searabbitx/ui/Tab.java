@@ -31,14 +31,6 @@ public class Tab extends JPanel {
         setupPeriodicTasks();
     }
 
-    private static void selectNextRowIfAvailable(DefaultTableModel model, int selectedRow, JTable table) {
-        int rowCount = model.getRowCount();
-        if (rowCount > 0) {
-            int newSelection = Math.min(selectedRow, rowCount - 1);
-            table.setRowSelectionInterval(newSelection, newSelection);
-        }
-    }
-
     private void setupPeriodicTasks() {
         var timer = new Timer(POLLING_PERIOD_SECONDS * 1000, _ -> pollMessages());
         timer.setRepeats(true);
