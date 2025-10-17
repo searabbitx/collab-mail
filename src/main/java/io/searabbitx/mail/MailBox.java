@@ -46,8 +46,8 @@ public class MailBox {
                 .peek(storage::storeMail);
     }
 
-    public void removeAddress(String add) {
-        this.storage.removeAddress(add);
+    public void removeAddressAt(int row) {
+        this.storage.removeAddressAt(row);
     }
 
     public void clearMails() {

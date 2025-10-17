@@ -8,7 +8,7 @@ class MessagesTableModel extends NonEditableModel {
     private static final String[] COLS = {"From", "To", "Subject", "Body"};
 
     @Override
-    String[] cols() {
+    protected String[] cols() {
         return COLS;
     }
 

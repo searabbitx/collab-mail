@@ -1,6 +1,5 @@
 package io.searabbitx.ui;
 
-import io.searabbitx.mail.Mail;
 import io.searabbitx.mail.MailBox;
 
 import javax.swing.*;
@@ -14,8 +13,9 @@ public class Tab extends JPanel {
 
     private final MailBox mailBox;
 
-    private JTable messagesTable;
-    private JTable addressTable;
+    private MessagesTable messagesTable;
+    private AddressTable addressTable;
+
     private JButton actionButton;
     private JButton removeButton;
     private JButton pollButton;
@@ -46,21 +46,9 @@ public class Tab extends JPanel {
     }
 
     private void initializeComponents() {
-        messagesTable = new JTable(new MessagesTableModel());
-        messagesTable.setFillsViewportHeight(true);
-        messagesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        messagesTable = new MessagesTable(this.mailBox::removeMailAt, this.mailBox::clearMails);
 
-        // Initialize right table (smaller table)
-        String[] addressesColumns = {"Address"};
-        DefaultTableModel rightModel = new DefaultTableModel(addressesColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        addressTable = new JTable(rightModel);
-        addressTable.setFillsViewportHeight(true);
-        addressTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        addressTable = new AddressTable(this.mailBox::removeAddressAt);
 
         // Initialize button
         actionButton = new JButton("Add");
@@ -73,8 +61,8 @@ public class Tab extends JPanel {
     }
 
     private void restoreValues() {
-        mailBox.addresses().forEach(this::addAddressTableRow);
-        mailBox.mails().forEach(this::addMessagesTableRow);
+        mailBox.addresses().forEach(addressTable::addRow);
+        mailBox.mails().forEach(messagesTable::addRow);
     }
 
     private void setupLayout() {
@@ -181,81 +169,14 @@ public class Tab extends JPanel {
 
     private void setupEventHandlers() {
         actionButton.addActionListener(_ -> showAddEntryDialog());
-        removeButton.addActionListener(_ -> removeSelectedAddress());
+        removeButton.addActionListener(_ -> addressTable.removeSelectedEntry());
         pollButton.addActionListener(_ -> pollMessages());
-        clearButton.addActionListener(_ -> clearMessages());
-        removeMessageButton.addActionListener(_ -> removeSelectedMail());
-
-        var mouseAdapter = new CopyTableCellMouseAdapter();
-        addressTable.addMouseListener(mouseAdapter);
-        messagesTable.addMouseListener(mouseAdapter);
+        clearButton.addActionListener(_ -> messagesTable.clearMessages());
+        removeMessageButton.addActionListener(_ -> messagesTable.removeSelectedEntry());
     }
 
     private void pollMessages() {
-        this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
-    }
-
-    private void clearMessages() {
-        yesNoDialog(
-                "Do you want to remove all messages?",
-                "Confirm Messages Removal",
-                () -> {
-                    this.mailBox.clearMails();
-                    ((MessagesTableModel) messagesTable.getModel()).clear();
-                }
-        );
-    }
-
-    private void removeSelectedMail() {
-        int selectedRow = messagesTable.getSelectedRow();
-        if (selectedRow < 0) {
-            return;
-        }
-
-        var model = (MessagesTableModel) messagesTable.getModel();
-        var subject = model.getSubjectAt(selectedRow);
-
-        yesNoDialog(
-                "Are you sure you want to remove this entry?\n'" + subject + "'",
-                "Confirm Removal",
-                () -> {
-                    this.mailBox.removeMailAt(selectedRow);
-                    model.removeRow(selectedRow);
-                    selectNextRowIfAvailable(model, selectedRow, messagesTable);
-                }
-        );
-    }
-
-    private void removeSelectedAddress() {
-        int selectedRow = addressTable.getSelectedRow();
-        if (selectedRow < 0) {
-            return;
-        }
-        DefaultTableModel model = (DefaultTableModel) addressTable.getModel();
-        String addr = (String) model.getValueAt(selectedRow, 0);
-
-        yesNoDialog(
-                "Are you sure you want to remove this entry?\n" + addr,
-                "Confirm Removal",
-                () -> {
-                    this.mailBox.removeAddress(addr);
-                    model.removeRow(selectedRow);
-                    selectNextRowIfAvailable(model, selectedRow, addressTable);
-                }
-        );
-    }
-
-    private void yesNoDialog(String message, String title, Runnable yesCallback) {
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                message,
-                title,
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (result == JOptionPane.YES_OPTION) {
-            yesCallback.run();
-        }
+        this.mailBox.pollInteractions().forEach(messagesTable::addRow);
     }
 
     private void showAddEntryDialog() {
@@ -303,7 +224,7 @@ public class Tab extends JPanel {
             String username = userField.getText().trim();
 
             if (!username.isEmpty()) {
-                addAddressTableRow(this.mailBox.generate(username));
+                addressTable.addRow(this.mailBox.generate(username));
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,
@@ -336,18 +257,5 @@ public class Tab extends JPanel {
         dialog.setLocationRelativeTo(this);
         dialog.setResizable(false);
         dialog.setVisible(true);
-    }
-
-    private void addAddressTableRow(String address) {
-        DefaultTableModel model = (DefaultTableModel) addressTable.getModel();
-        model.addRow(new Object[]{address});
-    }
-
-    private void addMessagesTableRow(Mail mail) {
-        ((MessagesTableModel) messagesTable.getModel()).addRow(mail);
-    }
-
-    private void clearMessagesTable() {
-        ((DefaultTableModel) messagesTable.getModel()).setRowCount(0);
     }
 }

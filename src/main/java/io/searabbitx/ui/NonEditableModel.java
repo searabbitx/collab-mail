@@ -9,7 +9,7 @@ abstract class NonEditableModel extends DefaultTableModel {
         setRowCount(0);
     }
 
-    abstract String[] cols();
+    protected abstract String[] cols();
 
     @Override
     public boolean isCellEditable(int row, int column) {

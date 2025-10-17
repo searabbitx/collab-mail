@@ -58,8 +58,9 @@ public class Storage {
         persistedMailList().add(encoded);
     }
 
-    public void removeAddress(String add) {
+    public void removeAddressAt(int row) {
         var perAdd = persistedAddressList();
+        String add = perAdd.get(row);
         var filtered = perAdd.stream().filter(o -> !o.equals(add)).toList();
         perAdd.clear();
         perAdd.addAll(filtered);
