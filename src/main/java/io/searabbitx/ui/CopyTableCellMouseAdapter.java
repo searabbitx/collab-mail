@@ -10,6 +10,19 @@ class CopyTableCellMouseAdapter extends MouseAdapter {
 
     private static final int DIALOG_AUTOCLOSE_DELAY = 2000;
 
+    private static void showAutoclosingDialog(String dispVal, JTable table) {
+        var pane = new JOptionPane();
+        pane.setMessage("'" + dispVal + "' copied to clipboard!");
+
+        var dialog = pane.createDialog(table, "Copied!");
+
+        var timer = new Timer(DIALOG_AUTOCLOSE_DELAY, _ -> dialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+
+        dialog.setVisible(true);
+    }
+
     public void mousePressed(MouseEvent mouseEvent) {
         JTable table = (JTable) mouseEvent.getSource();
         Point point = mouseEvent.getPoint();
@@ -29,18 +42,5 @@ class CopyTableCellMouseAdapter extends MouseAdapter {
 
             showAutoclosingDialog(dispVal, table);
         }
-    }
-
-    private static void showAutoclosingDialog(String dispVal, JTable table) {
-        var pane = new JOptionPane();
-        pane.setMessage("'" + dispVal + "' copied to clipboard!");
-
-        var dialog = pane.createDialog(table, "Copied!");
-
-        var timer = new Timer(DIALOG_AUTOCLOSE_DELAY, _ -> dialog.dispose());
-        timer.setRepeats(false);
-        timer.start();
-
-        dialog.setVisible(true);
     }
 }

@@ -9,12 +9,9 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Tab extends JPanel {
-    private static final int POLLING_PERIOD = 10;
+    private static final int POLLING_PERIOD_SECONDS = 5;
 
     private final MailBox mailBox;
 
@@ -35,9 +32,18 @@ public class Tab extends JPanel {
         setupPeriodicTasks();
     }
 
+    private static void selectNextRowIfAvailable(DefaultTableModel model, int selectedRow, JTable table) {
+        int rowCount = model.getRowCount();
+        if (rowCount > 0) {
+            int newSelection = Math.min(selectedRow, rowCount - 1);
+            table.setRowSelectionInterval(newSelection, newSelection);
+        }
+    }
+
     private void setupPeriodicTasks() {
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(this::pollMessages, POLLING_PERIOD, POLLING_PERIOD, TimeUnit.SECONDS);
+        var timer = new Timer(POLLING_PERIOD_SECONDS * 1000, _ -> pollMessages());
+        timer.setRepeats(true);
+        timer.start();
     }
 
     private void initializeComponents() {
@@ -248,14 +254,6 @@ public class Tab extends JPanel {
                     selectNextRowIfAvailable(model, selectedRow, addressTable);
                 }
         );
-    }
-
-    private static void selectNextRowIfAvailable(DefaultTableModel model, int selectedRow, JTable table) {
-        int rowCount = model.getRowCount();
-        if (rowCount > 0) {
-            int newSelection = Math.min(selectedRow, rowCount - 1);
-            table.setRowSelectionInterval(newSelection, newSelection);
-        }
     }
 
     private void yesNoDialog(String message, String title, Runnable yesCallback) {
