@@ -53,6 +53,11 @@ public class Storage {
         persistedAddressList().add(address);
     }
 
+    public void storeMail(Mail mail) {
+        var encoded = encodeMail(mail);
+        persistedMailList().add(encoded);
+    }
+
     public void removeAddress(String add) {
         var perAdd = persistedAddressList();
         var filtered = perAdd.stream().filter(o -> !o.equals(add)).toList();
@@ -62,11 +67,6 @@ public class Storage {
 
     void storeClient(CollaboratorClient client) {
         data.setString(COLLAB_CLIENT, client.getSecretKey().toString());
-    }
-
-    public void storeMail(Mail mail) {
-        var encoded = encodeMail(mail);
-        persistedMailList().add(encoded);
     }
 
     public Stream<Mail> fetchMails() {

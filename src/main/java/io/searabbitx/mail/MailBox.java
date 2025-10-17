@@ -4,6 +4,7 @@ import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.Interaction;
 import burp.api.montoya.collaborator.SmtpDetails;
 import io.searabbitx.storage.Storage;
+import io.searabbitx.util.Logger;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -40,6 +41,7 @@ public class MailBox {
                 .map(SmtpConversation::new)
                 .map(SmtpConversation::extractMail)
                 .flatMap(Optional::stream)
+                .peek(m -> Logger.log("Parsed mail from: " + m.from()))
                 .filter(mail -> addresses().anyMatch(mail.to()::contains))
                 .peek(storage::storeMail);
     }

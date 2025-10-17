@@ -5,7 +5,6 @@ import io.searabbitx.mail.MailBox;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,19 +46,9 @@ public class Tab extends JPanel {
     }
 
     private void initializeComponents() {
-        // Initialize left table (larger table)
-        String[] messagesColumns = {"From", "To", "Subject", "Body"};
-        DefaultTableModel messagesModel = new DefaultTableModel(messagesColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        messagesTable = new JTable(messagesModel);
+        messagesTable = new JTable(new MessagesTableModel());
         messagesTable.setFillsViewportHeight(true);
         messagesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        setupLeftTableColumnWidths();
 
         // Initialize right table (smaller table)
         String[] addressesColumns = {"Address"};
@@ -212,7 +201,7 @@ public class Tab extends JPanel {
                 "Confirm Messages Removal",
                 () -> {
                     this.mailBox.clearMails();
-                    this.clearMessagesTable();
+                    ((MessagesTableModel) messagesTable.getModel()).clear();
                 }
         );
     }
@@ -222,9 +211,9 @@ public class Tab extends JPanel {
         if (selectedRow < 0) {
             return;
         }
-        // Confirm deletion
-        var model = (DefaultTableModel) messagesTable.getModel();
-        var subject = model.getValueAt(selectedRow, 2);
+
+        var model = (MessagesTableModel) messagesTable.getModel();
+        var subject = model.getSubjectAt(selectedRow);
 
         yesNoDialog(
                 "Are you sure you want to remove this entry?\n'" + subject + "'",
@@ -267,26 +256,6 @@ public class Tab extends JPanel {
         if (result == JOptionPane.YES_OPTION) {
             yesCallback.run();
         }
-    }
-
-    private void setupLeftTableColumnWidths() {
-        final int max = 200;
-        final int min = 150;
-        // Set initial widths for From and To columns (200px each), but allow resizing
-        TableColumn fromColumn = messagesTable.getColumnModel().getColumn(0);
-        fromColumn.setPreferredWidth(max); // Initial width
-        fromColumn.setMinWidth(min); // Minimum width to prevent too small
-        // No max width set - allows user to resize wider than 200px
-
-        TableColumn toColumn = messagesTable.getColumnModel().getColumn(1);
-        toColumn.setPreferredWidth(max); // Initial width
-        toColumn.setMinWidth(min); // Minimum width to prevent too small
-        // No max width set - allows user to resize wider than 200px
-
-        // Title column will take remaining space
-        TableColumn titleColumn = messagesTable.getColumnModel().getColumn(2);
-        titleColumn.setPreferredWidth(max); // Initial preferred width
-        titleColumn.setMinWidth(min); // Minimum width
     }
 
     private void showAddEntryDialog() {
@@ -375,8 +344,7 @@ public class Tab extends JPanel {
     }
 
     private void addMessagesTableRow(Mail mail) {
-        DefaultTableModel model = (DefaultTableModel) messagesTable.getModel();
-        model.addRow(new Object[]{mail.from(), mail.to(), mail.subject(), mail.plainContent()});
+        ((MessagesTableModel) messagesTable.getModel()).addRow(mail);
     }
 
     private void clearMessagesTable() {
