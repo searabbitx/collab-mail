@@ -7,11 +7,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -143,8 +140,6 @@ public class Tab extends JPanel {
 
         var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane, splitPane);
         verticalSplit.setResizeWeight(0);
-//        verticalSplit.setOneTouchExpandable(true); // Add expand/collapse buttons
-//        verticalSplit.setContinuousLayout(true); // Smooth resizing
         verticalSplit.setDividerSize(8); // Set divider thickness
 
         add(verticalSplit, gbc);
@@ -196,40 +191,24 @@ public class Tab extends JPanel {
         clearButton.addActionListener(_ -> clearMessages());
         removeMessageButton.addActionListener(_ -> removeSelectedMail());
 
-        var mouseAdapter = new MouseAdapter() {
-            public void mousePressed(MouseEvent mouseEvent) {
-                JTable table = (JTable) mouseEvent.getSource();
-                Point point = mouseEvent.getPoint();
-                int row = table.rowAtPoint(point);
-                int col = table.columnAtPoint(point);
-                if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && table.getSelectedColumn() != -1 && row != -1 && col != -1) {
-                    int modelRow = table.convertRowIndexToModel(row);
-                    int modelCol = table.convertColumnIndexToModel(col);
-                    String val = (String) table.getModel().getValueAt(modelRow, modelCol);
-                    String dispVal = val.replaceAll("\n", " ");
-                    if (dispVal.length() > 50) {
-                        dispVal = dispVal.substring(0, 47) + "...";
-                    }
-                    Toolkit.getDefaultToolkit()
-                            .getSystemClipboard()
-                            .setContents(new StringSelection(val), null);
-                    JOptionPane.showConfirmDialog(
-                            table,
-                            "'" + dispVal + "' copied to clipboard",
-                            "Value copied",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        };
-
+        var mouseAdapter = new CopyTableCellMouseAdapter();
         addressTable.addMouseListener(mouseAdapter);
         messagesTable.addMouseListener(mouseAdapter);
     }
 
+    private void pollMessages() {
+        this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
+    }
+
     private void clearMessages() {
-        this.mailBox.clearMails();
-        this.clearMessagesTable();
+        yesNoDialog(
+                "Do you want to remove all messages?",
+                "Confirm Messages Removal",
+                () -> {
+                    this.mailBox.clearMails();
+                    this.clearMessagesTable();
+                }
+        );
     }
 
     private void removeSelectedMail() {
@@ -241,28 +220,15 @@ public class Tab extends JPanel {
         var model = (DefaultTableModel) messagesTable.getModel();
         var subject = model.getValueAt(selectedRow, 2);
 
-        int result = JOptionPane.showConfirmDialog(
-                this,
+        yesNoDialog(
                 "Are you sure you want to remove this entry?\n'" + subject + "'",
                 "Confirm Removal",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (result == JOptionPane.YES_OPTION) {
-            this.mailBox.removeMailAt(selectedRow);
-            model.removeRow(selectedRow);
-
-            // Select next row if available
-            int rowCount = model.getRowCount();
-            if (rowCount > 0) {
-                int newSelection = Math.min(selectedRow, rowCount - 1);
-                messagesTable.setRowSelectionInterval(newSelection, newSelection);
-            }
-        }
-    }
-
-    private void pollMessages() {
-        this.mailBox.pollInteractions().forEach(this::addMessagesTableRow);
+                () -> {
+                    this.mailBox.removeMailAt(selectedRow);
+                    model.removeRow(selectedRow);
+                    selectNextRowIfAvailable(model, selectedRow, messagesTable);
+                }
+        );
     }
 
     private void removeSelectedAddress() {
@@ -270,27 +236,38 @@ public class Tab extends JPanel {
         if (selectedRow < 0) {
             return;
         }
-        // Confirm deletion
         DefaultTableModel model = (DefaultTableModel) addressTable.getModel();
         String addr = (String) model.getValueAt(selectedRow, 0);
 
-        int result = JOptionPane.showConfirmDialog(
-                this,
+        yesNoDialog(
                 "Are you sure you want to remove this entry?\n" + addr,
                 "Confirm Removal",
+                () -> {
+                    this.mailBox.removeAddress(addr);
+                    model.removeRow(selectedRow);
+                    selectNextRowIfAvailable(model, selectedRow, addressTable);
+                }
+        );
+    }
+
+    private static void selectNextRowIfAvailable(DefaultTableModel model, int selectedRow, JTable table) {
+        int rowCount = model.getRowCount();
+        if (rowCount > 0) {
+            int newSelection = Math.min(selectedRow, rowCount - 1);
+            table.setRowSelectionInterval(newSelection, newSelection);
+        }
+    }
+
+    private void yesNoDialog(String message, String title, Runnable yesCallback) {
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                message,
+                title,
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            this.mailBox.removeAddress(addr);
-            model.removeRow(selectedRow);
-
-            // Select next row if available
-            int rowCount = model.getRowCount();
-            if (rowCount > 0) {
-                int newSelection = Math.min(selectedRow, rowCount - 1);
-                addressTable.setRowSelectionInterval(newSelection, newSelection);
-            }
+            yesCallback.run();
         }
     }
 
