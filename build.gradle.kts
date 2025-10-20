@@ -17,9 +17,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("net.portswigger.burp.extensions:montoya-api:2025.8")
 //    implementation("org.apache.commons:commons-email:1.5")
-     implementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
-     implementation("com.sun.mail:jakarta.mail:2.0.2")
-     implementation("org.eclipse.angus:angus-mail:2.0.1")
+    implementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
+    implementation("com.sun.mail:jakarta.mail:2.0.2")
+    implementation("org.eclipse.angus:angus-mail:2.0.1")
 }
 
 tasks.test {

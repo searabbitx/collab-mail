@@ -19,4 +19,13 @@ class MessagesTableModel extends NonEditableModel {
     void addRow(Mail mail) {
         addRow(new Object[]{mail.from(), mail.to(), mail.subject(), mail.plainContent()});
     }
+
+    Mail getMailAt(int row) {
+        return new Mail(
+                (String) getValueAt(row, 0),
+                (String) getValueAt(row, 1),
+                (String) getValueAt(row, 2),
+                (String) getValueAt(row, 3)
+        );
+    }
 }

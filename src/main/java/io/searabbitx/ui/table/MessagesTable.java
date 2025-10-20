@@ -31,6 +31,10 @@ public class MessagesTable extends RemovableEntriesTable {
         );
     }
 
+    public Mail selectedMail() {
+        return model.getMailAt(getSelectedRow());
+    }
+
     public void addRow(Mail mail) {
         model.addRow(mail);
     }

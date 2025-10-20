@@ -23,6 +23,8 @@ public class Tab extends JPanel {
         messagesPane = new MessagesPane(mailBox);
         detailsPane = new DetailsPane();
 
+        messagesPane.addMessageConsumer(detailsPane::update);
+
         pollButtonPane.onPollButtonPressed(messagesPane::pollMessages);
 
         restoreValues();
@@ -52,7 +54,7 @@ public class Tab extends JPanel {
         addrAndMsg.setDividerSize(8);
 
         var addrMsgAndDetails = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addrAndMsg, detailsPane.component());
-        addrMsgAndDetails.setResizeWeight(0.70);
+        addrMsgAndDetails.setResizeWeight(0.50);
         addrMsgAndDetails.setOneTouchExpandable(true);
         addrMsgAndDetails.setContinuousLayout(true);
         addrMsgAndDetails.setDividerSize(8);

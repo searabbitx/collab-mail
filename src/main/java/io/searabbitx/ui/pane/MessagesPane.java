@@ -1,10 +1,12 @@
 package io.searabbitx.ui.pane;
 
+import io.searabbitx.mail.Mail;
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.table.MessagesTable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public class MessagesPane {
     private final JPanel component;
@@ -64,13 +66,17 @@ public class MessagesPane {
         component.add(buttonPanel, gbc);
 
         JScrollPane messagesScrollPane = new JScrollPane(messagesTable);
-        messagesScrollPane.setMinimumSize(new Dimension(300, 400));
-        messagesScrollPane.setPreferredSize(new Dimension(600, 400));
         gbc.weighty = 2.0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.BOTH;
         component.add(messagesScrollPane, gbc);
 
         component.setBorder(BorderFactory.createTitledBorder("Inbox"));
+    }
+
+    public void addMessageConsumer(Consumer<Mail> consumer) {
+        messagesTable
+                .getSelectionModel()
+                .addListSelectionListener(_ -> consumer.accept(messagesTable.selectedMail()));
     }
 }
