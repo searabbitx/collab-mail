@@ -1,9 +1,11 @@
 package io.searabbitx.ui.pane;
 
+import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpResponseEditor;
+import burp.api.montoya.ui.editor.RawEditor;
 import io.searabbitx.mail.Mail;
 
 import javax.swing.*;
@@ -19,6 +21,7 @@ public class DetailsPane {
     private final JTabbedPane tabs;
     private final String template;
     private final HttpResponseEditor htmlEditor;
+    private final RawEditor rawEditor;
 
     public DetailsPane(UserInterface ui) {
         detailsTextPane = new JTextPane();
@@ -41,6 +44,10 @@ public class DetailsPane {
         renderTextPane.setText("");
         tabs.addTab("Render", renderTextPane);
         tabs.setEnabledAt(2, false);
+
+        rawEditor = ui.createRawEditor(EditorOptions.READ_ONLY);
+        tabs.addTab("SMTP Conversation", rawEditor.uiComponent());
+        tabs.setEnabledAt(3, false);
 
         component = new JPanel(new GridBagLayout());
         var gbc = new GridBagConstraints();
@@ -72,9 +79,12 @@ public class DetailsPane {
     public void update(Mail mail) {
         tabs.setEnabledAt(1, true);
         tabs.setEnabledAt(2, true);
+        tabs.setEnabledAt(3, true);
         var text = template
                 .replace("{{FROM}}", escape(mail.from()))
                 .replace("{{TO}}", escape(mail.to()))
+                .replace("{{CC}}", escape(mail.cc()))
+                .replace("{{BCC}}", escape(mail.bcc()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
                 .replace("{{PLAIN}}", mail.plainContent());
         detailsTextPane.setText(text);
@@ -88,6 +98,8 @@ public class DetailsPane {
         htmlEditor.setResponse(response);
 
         renderTextPane.setText(mail.htmlContent());
+
+        rawEditor.setContents(ByteArray.byteArray(mail.smtpConversation().getBytes()));
     }
 
     private String readTemplate() {
