@@ -58,6 +58,10 @@ public class MailBox {
         this.storage.removeMailAt(row);
     }
 
+    public Mail mailAt(int row) {
+        return this.storage.mailAt(row);
+    }
+
     private record Address(String username, String domain) {
         @SuppressWarnings("NullableProblems")
         @Override

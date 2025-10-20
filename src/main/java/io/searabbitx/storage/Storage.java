@@ -88,6 +88,10 @@ public class Storage {
         perMail.addAll(filtered);
     }
 
+    public Mail mailAt(int row) {
+        return decodeMail(persistedMailList().get(row)).orElseThrow();
+    }
+
     public CollaboratorClient fetchClient() {
         var key = data.getString(COLLAB_CLIENT);
         if (null == key) {

@@ -21,11 +21,16 @@ class SmtpConversation {
 
     private static Mail mimeParserToMail(MimeMessageParser parser) throws Exception {
         var tos = parser.getTo().stream().map(Address::toString).toList();
+        var bcc = parser.getBcc().stream().map(Address::toString).toList();
+        var cc = parser.getCc().stream().map(Address::toString).toList();
         return new Mail(
                 parser.getFrom(),
                 String.join(", ", tos),
+                String.join(", ", cc),
+                String.join(", ", bcc),
                 parser.getSubject(),
-                parser.getPlainContent()
+                parser.getPlainContent(),
+                parser.getHtmlContent()
         );
     }
 

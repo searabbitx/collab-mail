@@ -77,6 +77,10 @@ public class MessagesPane {
     public void addMessageConsumer(Consumer<Mail> consumer) {
         messagesTable
                 .getSelectionModel()
-                .addListSelectionListener(_ -> consumer.accept(messagesTable.selectedMail()));
+                .addListSelectionListener(_ -> consumer.accept(selectedMail()));
+    }
+
+    private Mail selectedMail() {
+        return mailBox.mailAt(messagesTable.getSelectedRow());
     }
 }
