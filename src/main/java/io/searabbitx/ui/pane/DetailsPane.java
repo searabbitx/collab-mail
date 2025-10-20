@@ -14,27 +14,33 @@ import java.nio.charset.StandardCharsets;
 
 public class DetailsPane {
     private final JPanel component;
-    private final JTextPane textPane;
+    private final JTextPane detailsTextPane;
+    private final JTextPane renderTextPane;
     private final JTabbedPane tabs;
     private final String template;
-    private final UserInterface ui;
     private final HttpResponseEditor htmlEditor;
 
     public DetailsPane(UserInterface ui) {
-        this.ui = ui;
-        textPane = new JTextPane();
-        textPane.setEditable(false);
-        textPane.setContentType("text/html");
-        textPane.setText("<html></html>");
+        detailsTextPane = new JTextPane();
+        detailsTextPane.setEditable(false);
+        detailsTextPane.setContentType("text/html");
+        detailsTextPane.setText("<html></html>");
         template = readTemplate();
 
-        var scroll = new JScrollPane(textPane);
+        var scroll = new JScrollPane(detailsTextPane);
 
         tabs = new JTabbedPane();
         tabs.addTab("Details", scroll);
         htmlEditor = ui.createHttpResponseEditor(EditorOptions.READ_ONLY);
         tabs.addTab("Html", htmlEditor.uiComponent());
         tabs.setEnabledAt(1, false);
+
+        renderTextPane = new JTextPane();
+        renderTextPane.setEditable(false);
+        renderTextPane.setContentType("text/html");
+        renderTextPane.setText("");
+        tabs.addTab("Render", renderTextPane);
+        tabs.setEnabledAt(2, false);
 
         component = new JPanel(new GridBagLayout());
         var gbc = new GridBagConstraints();
@@ -65,12 +71,13 @@ public class DetailsPane {
 
     public void update(Mail mail) {
         tabs.setEnabledAt(1, true);
+        tabs.setEnabledAt(2, true);
         var text = template
                 .replace("{{FROM}}", escape(mail.from()))
                 .replace("{{TO}}", escape(mail.to()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
                 .replace("{{PLAIN}}", mail.plainContent());
-        textPane.setText(text);
+        detailsTextPane.setText(text);
 
         var dummyHttpPrefix = """
                 Content-Type: text/html\r
@@ -79,6 +86,8 @@ public class DetailsPane {
         HttpResponse response = HttpResponse.httpResponse(dummyHttpPrefix).withBody(mail.htmlContent());
 
         htmlEditor.setResponse(response);
+
+        renderTextPane.setText(mail.htmlContent());
     }
 
     private String readTemplate() {
