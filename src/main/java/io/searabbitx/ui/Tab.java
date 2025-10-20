@@ -1,5 +1,6 @@
 package io.searabbitx.ui;
 
+import burp.api.montoya.ui.UserInterface;
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.pane.AddressPane;
 import io.searabbitx.ui.pane.DetailsPane;
@@ -17,11 +18,11 @@ public class Tab extends JPanel {
     private final MessagesPane messagesPane;
     private final DetailsPane detailsPane;
 
-    public Tab(MailBox mailBox) {
+    public Tab(MailBox mailBox, UserInterface ui) {
         pollButtonPane = new PollButtonPane();
         addressPane = new AddressPane(mailBox);
         messagesPane = new MessagesPane(mailBox);
-        detailsPane = new DetailsPane();
+        detailsPane = new DetailsPane(ui);
 
         messagesPane.addMessageConsumer(detailsPane::update);
 

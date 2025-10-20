@@ -1,5 +1,9 @@
 package io.searabbitx.ui.pane;
 
+import burp.api.montoya.http.message.responses.HttpResponse;
+import burp.api.montoya.ui.UserInterface;
+import burp.api.montoya.ui.editor.EditorOptions;
+import burp.api.montoya.ui.editor.HttpResponseEditor;
 import io.searabbitx.mail.Mail;
 
 import javax.swing.*;
@@ -11,9 +15,13 @@ import java.nio.charset.StandardCharsets;
 public class DetailsPane {
     private final JPanel component;
     private final JTextPane textPane;
+    private final JTabbedPane tabs;
     private final String template;
+    private final UserInterface ui;
+    private final HttpResponseEditor htmlEditor;
 
-    public DetailsPane() {
+    public DetailsPane(UserInterface ui) {
+        this.ui = ui;
         textPane = new JTextPane();
         textPane.setEditable(false);
         textPane.setContentType("text/html");
@@ -21,6 +29,12 @@ public class DetailsPane {
         template = readTemplate();
 
         var scroll = new JScrollPane(textPane);
+
+        tabs = new JTabbedPane();
+        tabs.addTab("Details", scroll);
+        htmlEditor = ui.createHttpResponseEditor(EditorOptions.READ_ONLY);
+        tabs.addTab("Html", htmlEditor.uiComponent());
+        tabs.setEnabledAt(1, false);
 
         component = new JPanel(new GridBagLayout());
         var gbc = new GridBagConstraints();
@@ -30,7 +44,7 @@ public class DetailsPane {
         gbc.gridx = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
-        component.add(scroll, gbc);
+        component.add(tabs, gbc);
     }
 
     private static String escape(String str) {
@@ -50,12 +64,21 @@ public class DetailsPane {
     }
 
     public void update(Mail mail) {
+        tabs.setEnabledAt(1, true);
         var text = template
                 .replace("{{FROM}}", escape(mail.from()))
                 .replace("{{TO}}", escape(mail.to()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
                 .replace("{{PLAIN}}", mail.plainContent());
         textPane.setText(text);
+
+        var dummyHttpPrefix = """
+                Content-Type: text/html\r
+                \r
+                OK""";
+        HttpResponse response = HttpResponse.httpResponse(dummyHttpPrefix).withBody(mail.htmlContent());
+
+        htmlEditor.setResponse(response);
     }
 
     private String readTemplate() {
