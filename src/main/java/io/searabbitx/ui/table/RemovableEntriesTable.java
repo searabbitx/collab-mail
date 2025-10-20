@@ -1,4 +1,4 @@
-package io.searabbitx.ui;
+package io.searabbitx.ui.table;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

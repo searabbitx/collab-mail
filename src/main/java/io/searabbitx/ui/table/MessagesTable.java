@@ -1,4 +1,4 @@
-package io.searabbitx.ui;
+package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Mail;
 
@@ -6,12 +6,12 @@ import java.util.function.Consumer;
 
 import static io.searabbitx.ui.dialog.DialogUtils.yesNoDialog;
 
-class MessagesTable extends RemovableEntriesTable {
+public class MessagesTable extends RemovableEntriesTable {
     private final MessagesTableModel model;
     private final Consumer<Integer> entryRemovalCallback;
     private final Runnable clearCallback;
 
-    MessagesTable(Consumer<Integer> entryRemovalCallback, Runnable clearCallback) {
+    public MessagesTable(Consumer<Integer> entryRemovalCallback, Runnable clearCallback) {
         super();
         this.entryRemovalCallback = entryRemovalCallback;
         this.clearCallback = clearCallback;
@@ -19,7 +19,7 @@ class MessagesTable extends RemovableEntriesTable {
         setModel(model);
     }
 
-    void clearMessages() {
+    public void clearMessages() {
         yesNoDialog(
                 "Do you want to remove all messages?",
                 "Confirm Messages Removal",
@@ -31,7 +31,7 @@ class MessagesTable extends RemovableEntriesTable {
         );
     }
 
-    void addRow(Mail mail) {
+    public void addRow(Mail mail) {
         model.addRow(mail);
     }
 

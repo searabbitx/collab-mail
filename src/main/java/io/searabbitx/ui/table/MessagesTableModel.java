@@ -1,4 +1,4 @@
-package io.searabbitx.ui;
+package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Mail;
 

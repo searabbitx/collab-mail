@@ -1,7 +1,7 @@
 package io.searabbitx.ui.pane;
 
 import io.searabbitx.mail.MailBox;
-import io.searabbitx.ui.AddressTable;
+import io.searabbitx.ui.table.AddressTable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,10 +11,9 @@ import java.awt.event.ActionListener;
 public class AddressPane {
     private final MailBox mailBox;
     private final AddressTable addressTable;
-    
-    private JSplitPane component;
     private final JButton addButton;
     private final JButton removeButton;
+    private JSplitPane component;
 
     public AddressPane(MailBox mailBox) {
         this.mailBox = mailBox;
@@ -142,7 +141,7 @@ public class AddressPane {
         addressPanel.setContinuousLayout(true); // Smooth resizing
         addressPanel.setDividerSize(8); // Set divider thickness
         addressPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
-        
+
         component = addressPanel;
     }
 }

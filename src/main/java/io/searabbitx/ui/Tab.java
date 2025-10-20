@@ -3,6 +3,7 @@ package io.searabbitx.ui;
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.pane.AddressPane;
 import io.searabbitx.ui.pane.PollButtonPane;
+import io.searabbitx.ui.table.MessagesTable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,12 +12,9 @@ public class Tab extends JPanel {
     private static final int POLLING_PERIOD_SECONDS = 5;
 
     private final MailBox mailBox;
-
-    private MessagesTable messagesTable;
-
     private final PollButtonPane pollButtonPane;
     private final AddressPane addressPane;
-
+    private MessagesTable messagesTable;
     private JButton clearButton;
     private JButton removeMessageButton;
 
