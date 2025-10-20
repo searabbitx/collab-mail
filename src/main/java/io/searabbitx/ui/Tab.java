@@ -2,6 +2,7 @@ package io.searabbitx.ui;
 
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.pane.AddressPane;
+import io.searabbitx.ui.pane.DetailsPane;
 import io.searabbitx.ui.pane.MessagesPane;
 import io.searabbitx.ui.pane.PollButtonPane;
 
@@ -14,11 +15,13 @@ public class Tab extends JPanel {
     private final PollButtonPane pollButtonPane;
     private final AddressPane addressPane;
     private final MessagesPane messagesPane;
+    private final DetailsPane detailsPane;
 
     public Tab(MailBox mailBox) {
         pollButtonPane = new PollButtonPane();
         addressPane = new AddressPane(mailBox);
         messagesPane = new MessagesPane(mailBox);
+        detailsPane = new DetailsPane();
 
         pollButtonPane.onPollButtonPressed(messagesPane::pollMessages);
 
@@ -40,13 +43,19 @@ public class Tab extends JPanel {
 
     private void setupLayout() {
         setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        var gbc = new GridBagConstraints();
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPane.component(), messagesPane.component());
-        splitPane.setResizeWeight(0.10);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setContinuousLayout(true);
-        splitPane.setDividerSize(8);
+        var addrAndMsg = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPane.component(), messagesPane.component());
+        addrAndMsg.setResizeWeight(0.10);
+        addrAndMsg.setOneTouchExpandable(true);
+        addrAndMsg.setContinuousLayout(true);
+        addrAndMsg.setDividerSize(8);
+
+        var addrMsgAndDetails = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addrAndMsg, detailsPane.component());
+        addrMsgAndDetails.setResizeWeight(0.70);
+        addrMsgAndDetails.setOneTouchExpandable(true);
+        addrMsgAndDetails.setContinuousLayout(true);
+        addrMsgAndDetails.setDividerSize(8);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -55,7 +64,7 @@ public class Tab extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane.component(), splitPane);
+        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane.component(), addrMsgAndDetails);
         verticalSplit.setResizeWeight(0);
         verticalSplit.setDividerSize(8);
 
