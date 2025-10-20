@@ -2,18 +2,18 @@ package io.searabbitx.ui;
 
 import java.util.function.Consumer;
 
-class AddressTable extends RemovableEntriesTable {
+public class AddressTable extends RemovableEntriesTable {
     private final AddressTableModel model;
     private final Consumer<Integer> entryRemovalCallback;
 
-    AddressTable(Consumer<Integer> entryRemovalCallback) {
+    public AddressTable(Consumer<Integer> entryRemovalCallback) {
         super();
         this.entryRemovalCallback = entryRemovalCallback;
         model = new AddressTableModel();
         setModel(model);
     }
 
-    void addRow(String add) {
+    public void addRow(String add) {
         model.addRow(add);
     }
 

@@ -12,7 +12,7 @@ abstract class RemovableEntriesTable extends JTable {
         addMouseListener(new CopyTableCellMouseAdapter());
     }
 
-    void removeSelectedEntry() {
+    public void removeSelectedEntry() {
         int selectedRow = getSelectedRow();
         if (selectedRow < 0) {
             return;
