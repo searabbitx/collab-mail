@@ -80,7 +80,7 @@ public class Tab extends JPanel {
 
         pollButtonPane = new PollButtonPane();
 
-        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane, splitPane);
+        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane.component(), splitPane);
         verticalSplit.setResizeWeight(0);
         verticalSplit.setDividerSize(8); // Set divider thickness
 
