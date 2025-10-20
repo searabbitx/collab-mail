@@ -8,7 +8,7 @@ import io.searabbitx.ui.Tab;
 import io.searabbitx.util.Logger;
 
 public class CollabMail implements BurpExtension {
-    private static final String VERSION = "0.2";
+    private static final String VERSION = "0.3";
 
     @Override
     public void initialize(MontoyaApi api) {

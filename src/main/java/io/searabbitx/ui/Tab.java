@@ -1,6 +1,7 @@
 package io.searabbitx.ui;
 
 import io.searabbitx.mail.MailBox;
+import io.searabbitx.ui.pane.PollButtonPane;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,9 +16,10 @@ public class Tab extends JPanel {
     private MessagesTable messagesTable;
     private AddressTable addressTable;
 
+    private PollButtonPane pollButtonPane;
+
     private JButton actionButton;
     private JButton removeButton;
-    private JButton pollButton;
     private JButton clearButton;
     private JButton removeMessageButton;
 
@@ -44,7 +46,6 @@ public class Tab extends JPanel {
         // Initialize button
         actionButton = new JButton("Add");
         removeButton = new JButton("Remove");
-        pollButton = new JButton("Poll now!");
         clearButton = new JButton("Clear");
         removeMessageButton = new JButton("Remove selected");
 
@@ -77,7 +78,7 @@ public class Tab extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        var pollButtonPane = createPollButtonPane();
+        pollButtonPane = new PollButtonPane();
 
         var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane, splitPane);
         verticalSplit.setResizeWeight(0);
@@ -154,24 +155,13 @@ public class Tab extends JPanel {
         return addressPanel;
     }
 
-    private Component createPollButtonPane() {
-        JPanel pollButtonPane = new JPanel();
-        pollButtonPane.setLayout(new BoxLayout(pollButtonPane, BoxLayout.X_AXIS));
-        pollButtonPane.setPreferredSize(new Dimension(0, 30));
-        pollButton.setMaximumSize(new Dimension(100, 30));
-        pollButton.setSize(new Dimension(100, 30));
-        pollButtonPane.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-        pollButtonPane.add(pollButton);
-
-        return pollButtonPane;
-    }
-
     private void setupEventHandlers() {
         actionButton.addActionListener(_ -> showAddEntryDialog());
         removeButton.addActionListener(_ -> addressTable.removeSelectedEntry());
-        pollButton.addActionListener(_ -> pollMessages());
         clearButton.addActionListener(_ -> messagesTable.clearMessages());
         removeMessageButton.addActionListener(_ -> messagesTable.removeSelectedEntry());
+
+        pollButtonPane.onPollButtonPressed(this::pollMessages);
     }
 
     private void pollMessages() {
@@ -223,7 +213,8 @@ public class Tab extends JPanel {
             String username = userField.getText().trim();
 
             if (!username.isEmpty()) {
-                addressTable.addRow(this.mailBox.generate(username));
+                String address = this.mailBox.generate(username);
+                addressTable.addRow(address);
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,

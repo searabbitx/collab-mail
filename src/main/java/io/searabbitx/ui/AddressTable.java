@@ -10,6 +10,7 @@ class AddressTable extends RemovableEntriesTable {
         super();
         this.entryRemovalCallback = entryRemovalCallback;
         model = new AddressTableModel();
+        setModel(model);
     }
 
     void addRow(String add) {
