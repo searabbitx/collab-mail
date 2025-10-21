@@ -15,16 +15,11 @@ abstract class BaseTable extends JTable {
 
     public void removeSelectedEntry() {
         selectedRowIndex().ifPresent(ri -> {
-            yesNoDialog(
-                    "Are you sure you want to remove this entry?\n" + rowStringRepresentation(ri.modelRow),
-                    "Confirm Removal",
-                    () -> {
-                        this.onEntryRemoval(ri);
-                        ((DefaultTableModel) getModel()).removeRow(ri.modelRow);
-                        selectNextRowIfAvailable(ri.selectedRow);
-                    },
-                    this
-            );
+            yesNoDialog("Are you sure you want to remove this entry?\n" + rowStringRepresentation(ri), "Confirm Removal", () -> {
+                this.onEntryRemoval(ri);
+                ((DefaultTableModel) getModel()).removeRow(ri.modelRow);
+                selectNextRowIfAvailable(ri.selectedRow);
+            }, this);
         });
     }
 
@@ -36,15 +31,13 @@ abstract class BaseTable extends JTable {
         }
     }
 
-    protected abstract String rowStringRepresentation(int modelRow);
+    protected abstract String rowStringRepresentation(RowIndex ri);
 
     protected abstract void onEntryRemoval(RowIndex rowIndex);
 
     protected Optional<RowIndex> selectedRowIndex() {
         int selectedRow = getSelectedRow();
-        return selectedRow >= 0
-                ? Optional.of(new RowIndex(selectedRow, convertColumnIndexToModel(selectedRow)))
-                : Optional.empty();
+        return selectedRow >= 0 ? Optional.of(new RowIndex(selectedRow, convertRowIndexToModel(selectedRow))) : Optional.empty();
     }
 
     record RowIndex(int selectedRow, int modelRow) {

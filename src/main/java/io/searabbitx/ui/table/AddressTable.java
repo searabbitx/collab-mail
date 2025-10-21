@@ -18,12 +18,12 @@ public class AddressTable extends BaseTable {
     }
 
     @Override
-    protected String rowStringRepresentation(int selectedRow) {
-        return model.getAddressAt(selectedRow);
+    protected String rowStringRepresentation(RowIndex ri) {
+        return model.getAddressAt(ri.modelRow());
     }
 
     @Override
     protected void onEntryRemoval(RowIndex ri) {
-        entryRemovalCallback.accept(ri.selectedRow());
+        entryRemovalCallback.accept(ri.modelRow());
     }
 }

@@ -2,6 +2,8 @@ package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Mail;
 
+import javax.swing.*;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -18,6 +20,11 @@ public class MessagesTable extends BaseTable {
         this.clearCallback = clearCallback;
         model = new MessagesTableModel();
         setModel(model);
+        setAutoCreateRowSorter(true);
+
+        getRowSorter().setSortKeys(
+                List.of(new RowSorter.SortKey(0, SortOrder.DESCENDING))
+        );
     }
 
     public void clearMessages() {
@@ -41,12 +48,12 @@ public class MessagesTable extends BaseTable {
     }
 
     @Override
-    protected String rowStringRepresentation(int selectedRow) {
-        return model.getSubjectAt(selectedRow);
+    protected String rowStringRepresentation(RowIndex ri) {
+        return model.getSubjectAt(ri.modelRow());
     }
 
     @Override
     protected void onEntryRemoval(RowIndex ri) {
-        entryRemovalCallback.accept(ri.selectedRow());
+        entryRemovalCallback.accept(ri.modelRow());
     }
 }

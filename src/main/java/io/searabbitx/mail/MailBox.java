@@ -1,8 +1,6 @@
 package io.searabbitx.mail;
 
 import burp.api.montoya.collaborator.CollaboratorClient;
-import burp.api.montoya.collaborator.Interaction;
-import burp.api.montoya.collaborator.SmtpDetails;
 import io.searabbitx.storage.Storage;
 import io.searabbitx.util.Logger;
 
@@ -35,10 +33,8 @@ public class MailBox {
 
     public Stream<Mail> pollInteractions() {
         return client.getAllInteractions().stream()
-                .map(Interaction::smtpDetails)
+                .map(SmtpConversation::fromInteraction)
                 .flatMap(Optional::stream)
-                .map(SmtpDetails::conversation)
-                .map(SmtpConversation::new)
                 .map(SmtpConversation::extractMail)
                 .flatMap(Optional::stream)
                 .peek(m -> Logger.log("Parsed mail from: " + m.from()))

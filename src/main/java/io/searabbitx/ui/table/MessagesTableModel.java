@@ -2,10 +2,11 @@ package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Mail;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 class MessagesTableModel extends NonEditableModel {
-    private static final String[] COLS = {"From", "To", "Subject", "Body"};
+    private static final String[] COLS = {"Time", "From", "To", "Subject", "Body"};
 
     @Override
     protected String[] cols() {
@@ -17,6 +18,7 @@ class MessagesTableModel extends NonEditableModel {
     }
 
     void addRow(Mail mail) {
-        addRow(new Object[]{mail.from(), mail.to(), mail.subject(), mail.plainContent()});
+        var time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(mail.time());
+        addRow(new Object[]{time, mail.from(), mail.to(), mail.subject(), mail.plainContent()});
     }
 }
