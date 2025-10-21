@@ -1,4 +1,4 @@
 # Todos
 
 - [ ] log other interactions somehow
-- [ ] table filters
+- [ ] fuzzy search

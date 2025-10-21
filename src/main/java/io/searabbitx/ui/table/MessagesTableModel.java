@@ -4,6 +4,7 @@ import io.searabbitx.mail.Mail;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 class MessagesTableModel extends NonEditableModel {
     private static final String[] COLS = {"Time", "From", "To", "Subject", "Body"};
@@ -15,6 +16,12 @@ class MessagesTableModel extends NonEditableModel {
 
     String getSubjectAt(int row) {
         return (String) getValueAt(row, Arrays.asList(COLS).indexOf("Subject"));
+    }
+
+    String rowSlugAt(int row) {
+        return IntStream.range(1, COLS.length)
+                .mapToObj(i -> (String) getValueAt(row, i))
+                .reduce("", (a, b) -> a + b);
     }
 
     void addRow(Mail mail) {

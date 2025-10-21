@@ -2,6 +2,7 @@ package io.searabbitx.ui.pane;
 
 import io.searabbitx.mail.Mail;
 import io.searabbitx.mail.MailBox;
+import io.searabbitx.ui.field.SearchTextField;
 import io.searabbitx.ui.table.MessagesTable;
 
 import javax.swing.*;
@@ -57,6 +58,8 @@ public class MessagesPane {
         buttonPanel.add(clearButton, buttonGbc);
         buttonGbc.gridx = 1;
         buttonPanel.add(removeButton, buttonGbc);
+        buttonGbc.gridx = 2;
+        buttonPanel.add(new SearchTextField(messagesTable::filter), buttonGbc);
 
         gbc.gridy = 0;
         gbc.gridx = 0;
