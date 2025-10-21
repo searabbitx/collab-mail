@@ -2,11 +2,12 @@ package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Mail;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static io.searabbitx.ui.dialog.DialogUtils.yesNoDialog;
 
-public class MessagesTable extends RemovableEntriesTable {
+public class MessagesTable extends BaseTable {
     private final MessagesTableModel model;
     private final Consumer<Integer> entryRemovalCallback;
     private final Runnable clearCallback;
@@ -35,13 +36,17 @@ public class MessagesTable extends RemovableEntriesTable {
         model.addRow(mail);
     }
 
+    public Optional<Integer> selectedRowModelIndex() {
+        return selectedRowIndex().map(RowIndex::modelRow);
+    }
+
     @Override
     protected String rowStringRepresentation(int selectedRow) {
         return model.getSubjectAt(selectedRow);
     }
 
     @Override
-    protected void onEntryRemoval(int selectedRow) {
-        entryRemovalCallback.accept(selectedRow);
+    protected void onEntryRemoval(RowIndex ri) {
+        entryRemovalCallback.accept(ri.selectedRow());
     }
 }

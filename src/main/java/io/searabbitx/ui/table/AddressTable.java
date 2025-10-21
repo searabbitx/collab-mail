@@ -2,7 +2,7 @@ package io.searabbitx.ui.table;
 
 import java.util.function.Consumer;
 
-public class AddressTable extends RemovableEntriesTable {
+public class AddressTable extends BaseTable {
     private final AddressTableModel model;
     private final Consumer<Integer> entryRemovalCallback;
 
@@ -23,7 +23,7 @@ public class AddressTable extends RemovableEntriesTable {
     }
 
     @Override
-    protected void onEntryRemoval(int selectedRow) {
-        entryRemovalCallback.accept(selectedRow);
+    protected void onEntryRemoval(RowIndex ri) {
+        entryRemovalCallback.accept(ri.selectedRow());
     }
 }

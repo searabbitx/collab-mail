@@ -6,6 +6,7 @@ import io.searabbitx.ui.table.MessagesTable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class MessagesPane {
@@ -77,10 +78,14 @@ public class MessagesPane {
     public void addMessageConsumer(Consumer<Mail> consumer) {
         messagesTable
                 .getSelectionModel()
-                .addListSelectionListener(_ -> consumer.accept(selectedMail()));
+                .addListSelectionListener(_ -> {
+                    var mail = selectedMail();
+                    assert mail.isPresent();
+                    mail.ifPresent(consumer);
+                });
     }
 
-    private Mail selectedMail() {
-        return mailBox.mailAt(messagesTable.getSelectedRow());
+    private Optional<Mail> selectedMail() {
+        return messagesTable.selectedRowModelIndex().map(mailBox::mailAt);
     }
 }
