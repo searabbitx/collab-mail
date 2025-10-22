@@ -27,7 +27,7 @@ jobs:
       run: ./gradlew jar
 
     - name: Copy jar
-      run: cp build/libs/collab-mail-*.jar collab-mail.jar
+      run: cp build/libs/collab-mail.jar .
 
     - name: release
       uses: softprops/action-gh-release@v2
