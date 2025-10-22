@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.searabbitx"
-version = "1.0-SNAPSHOT"
+version = ""
 
 repositories {
     mavenCentral()
@@ -39,14 +39,17 @@ tasks.withType<Jar> {
 }
 
 tasks.register<Jar>("jarDebug") {
-    group = "build"
-    description = "Builds a JAR with debug symbols enabled."
-    project.version = "1.0-debug"
+    if ("1" == System.getenv("DEBUG")) {
+        group = "build"
+        description = "Builds a JAR with debug symbols enabled."
+        logger.log(LogLevel.WARN, "Debug version")
+        project.version = "1.0-debug"
 
-    // Ensure outputs from compilation are included
-    from(sourceSets.main.get().output)
+        // Ensure outputs from compilation are included
+        from(sourceSets.main.get().output)
 
-    archiveClassifier.set("debug")
+        archiveClassifier.set("debug")
 
-    dependsOn(tasks.named("compileJava"))
+        dependsOn(tasks.named("compileJava"))
+    }
 }
