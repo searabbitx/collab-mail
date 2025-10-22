@@ -42,6 +42,8 @@ public class DetailsPane {
         renderTextPane.setEditable(false);
         renderTextPane.setContentType("text/html");
         renderTextPane.setText("");
+        renderTextPane.setBackground(Color.WHITE);
+        renderTextPane.setForeground(Color.BLACK);
         tabs.addTab("Render", renderTextPane);
         tabs.setEnabledAt(2, false);
 

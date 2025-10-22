@@ -1,12 +1,14 @@
 package io.searabbitx.ui.field;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.function.Consumer;
 
 public class SearchTextField extends JTextField {
     public SearchTextField(Consumer<String> onInputChanged) {
+        setMinimumSize(new Dimension(0, 15));
         setText("Search...");
         addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
