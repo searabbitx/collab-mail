@@ -4,6 +4,7 @@ import io.searabbitx.mail.Mail;
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.field.SearchTextField;
 import io.searabbitx.ui.table.MessagesTable;
+import io.searabbitx.util.ThreadPool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,7 +33,7 @@ public class MessagesPane {
     }
 
     public void pollMessages() {
-        mailBox.pollInteractions().forEach(messagesTable::addRow);
+        ThreadPool.submit(() -> mailBox.pollInteractions().forEach(messagesTable::addRow));
     }
 
     public Component component() {
