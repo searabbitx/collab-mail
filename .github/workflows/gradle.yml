@@ -1,12 +1,8 @@
 name: Java CI with Gradle
 
-on:
-  push:
-    branches: [ "main" ]
-
+on: [push]
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
