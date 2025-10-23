@@ -7,8 +7,10 @@ import io.searabbitx.storage.Storage;
 import io.searabbitx.ui.Tab;
 import io.searabbitx.util.Logger;
 
+import javax.swing.*;
+
 public class CollabMail implements BurpExtension {
-    private static final String VERSION = "0.1.5";
+    private static final String VERSION = "0.1.5 jaa";
 
     @Override
     public void initialize(MontoyaApi api) {
@@ -23,6 +25,11 @@ public class CollabMail implements BurpExtension {
 
     private Tab initializeTab(MontoyaApi api) {
         var storage = new Storage(api.persistence().extensionData(), api.collaborator());
-        return new Tab(new MailBox(storage), api.userInterface());
+        var tab = new Tab(new MailBox(storage), api.userInterface());
+        tab.showLoadingScreen();
+        var timer = new Timer(5000, _ -> tab.showMainScreen());
+        timer.setRepeats(false);
+        timer.start();
+        return tab;
     }
 }

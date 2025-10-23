@@ -2,76 +2,63 @@ package io.searabbitx.ui;
 
 import burp.api.montoya.ui.UserInterface;
 import io.searabbitx.mail.MailBox;
-import io.searabbitx.ui.pane.AddressPane;
-import io.searabbitx.ui.pane.DetailsPane;
-import io.searabbitx.ui.pane.MessagesPane;
-import io.searabbitx.ui.pane.PollButtonPane;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class Tab extends JPanel {
-    private static final int POLLING_PERIOD_SECONDS = 5;
 
-    private final PollButtonPane pollButtonPane;
-    private final AddressPane addressPane;
-    private final MessagesPane messagesPane;
-    private final DetailsPane detailsPane;
+    private static final Integer MAIN_LAYER = 0;
+    private static final Integer LOADING_LAYER = 1;
+
+    private final JLayeredPane layeredPane;
+    private final MainPanel mainTab;
+    private final LoadingPanel loadingTab;
 
     public Tab(MailBox mailBox, UserInterface ui) {
-        pollButtonPane = new PollButtonPane();
-        addressPane = new AddressPane(mailBox);
-        messagesPane = new MessagesPane(mailBox);
-        detailsPane = new DetailsPane(ui);
+        this.mainTab = new MainPanel(mailBox, ui);
+        this.loadingTab = new LoadingPanel();
 
-        messagesPane.addMessageConsumer(detailsPane::update);
+        setLayout(new BorderLayout());
 
-        pollButtonPane.onPollButtonPressed(messagesPane::pollMessages);
+        layeredPane = new JLayeredPane();
+        add(layeredPane, BorderLayout.CENTER);
 
-        restoreValues();
-        setupPeriodicTasks();
-        setupLayout();
+        setupPanels();
     }
 
-    private void restoreValues() {
-        addressPane.restoreValues();
-        messagesPane.restoreValues();
+    public void showMainScreen() {
+        loadingTab.setVisible(false);
     }
 
-    private void setupPeriodicTasks() {
-        var timer = new Timer(POLLING_PERIOD_SECONDS * 1000, _ -> messagesPane.pollMessages());
-        timer.setRepeats(true);
-        timer.start();
+    public void showLoadingScreen() {
+        loadingTab.setVisible(true);
+        layeredPane.moveToFront(loadingTab);
     }
 
-    private void setupLayout() {
-        setLayout(new GridBagLayout());
-        var gbc = new GridBagConstraints();
+    private void setupPanels() {
+        handleResizing();
+        layeredPane.add(mainTab, MAIN_LAYER);
+        layeredPane.add(loadingTab, LOADING_LAYER);
 
-        var addrAndMsg = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addressPane.component(), messagesPane.component());
-        addrAndMsg.setResizeWeight(0.10);
-        addrAndMsg.setOneTouchExpandable(true);
-        addrAndMsg.setContinuousLayout(true);
-        addrAndMsg.setDividerSize(8);
-
-        var addrMsgAndDetails = new JSplitPane(JSplitPane.VERTICAL_SPLIT, addrAndMsg, detailsPane.component());
-        addrMsgAndDetails.setResizeWeight(0.50);
-        addrMsgAndDetails.setOneTouchExpandable(true);
-        addrMsgAndDetails.setContinuousLayout(true);
-        addrMsgAndDetails.setDividerSize(8);
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.insets = new Insets(10, 10, 10, 10);
-
-        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pollButtonPane.component(), addrMsgAndDetails);
-        verticalSplit.setResizeWeight(0);
-        verticalSplit.setDividerSize(8);
-
-        add(verticalSplit, gbc);
+        // Make loading tab semi-transparent
+        loadingTab.setOpaque(false);
+        // Initially hide the loading tab
+        loadingTab.setVisible(false);
     }
 
+    private void handleResizing() {
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                resizePanels();
+            }
+        });
+    }
+
+    private void resizePanels() {
+        Dimension size = layeredPane.getSize();
+        mainTab.setBounds(0, 0, size.width, size.height);
+        loadingTab.setBounds(0, 0, size.width, size.height);
+    }
 }
