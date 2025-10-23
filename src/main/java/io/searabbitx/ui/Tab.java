@@ -2,6 +2,7 @@ package io.searabbitx.ui;
 
 import burp.api.montoya.ui.UserInterface;
 import io.searabbitx.mail.MailBox;
+import io.searabbitx.util.ThreadPool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,6 +26,12 @@ public class Tab extends JPanel {
         add(layeredPane, BorderLayout.CENTER);
 
         setupPanels();
+
+        showLoadingScreen();
+        ThreadPool.submit(() -> {
+            mainTab.restoreValues();
+            showMainScreen();
+        });
     }
 
     public void showMainScreen() {
@@ -41,9 +48,7 @@ public class Tab extends JPanel {
         layeredPane.add(mainTab, MAIN_LAYER);
         layeredPane.add(loadingTab, LOADING_LAYER);
 
-        // Make loading tab semi-transparent
         loadingTab.setOpaque(false);
-        // Initially hide the loading tab
         loadingTab.setVisible(false);
     }
 

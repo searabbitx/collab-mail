@@ -25,11 +25,6 @@ public class CollabMail implements BurpExtension {
 
     private Tab initializeTab(MontoyaApi api) {
         var storage = new Storage(api.persistence().extensionData(), api.collaborator());
-        var tab = new Tab(new MailBox(storage), api.userInterface());
-        tab.showLoadingScreen();
-        var timer = new Timer(5000, _ -> tab.showMainScreen());
-        timer.setRepeats(false);
-        timer.start();
-        return tab;
+        return new Tab(new MailBox(storage), api.userInterface());
     }
 }

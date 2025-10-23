@@ -28,12 +28,11 @@ class MainPanel extends JPanel {
 
         pollButtonPane.onPollButtonPressed(messagesPane::pollMessages);
 
-        restoreValues();
         setupPeriodicTasks();
         setupLayout();
     }
 
-    private void restoreValues() {
+    void restoreValues() {
         addressPane.restoreValues();
         messagesPane.restoreValues();
     }
