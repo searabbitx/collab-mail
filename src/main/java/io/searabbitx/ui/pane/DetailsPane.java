@@ -7,12 +7,15 @@ import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpResponseEditor;
 import burp.api.montoya.ui.editor.RawEditor;
 import io.searabbitx.mail.Mail;
+import io.searabbitx.util.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 
 public class DetailsPane {
     private final JPanel component;
@@ -74,6 +77,28 @@ public class DetailsPane {
         return out;
     }
 
+    private static String renderAttachmentsList(Mail mail) {
+        return mail.attachments().stream()
+                .map(a -> String.format(
+                        "<li>%s (%s) <i>%s</i></li>",
+                        escape(a.name()),
+                        escape(a.contentType()),
+                        escape(humanReadableSize(a.content().length)))
+                ).reduce("", (a, b) -> a + "\n" + b);
+    }
+
+    public static String humanReadableSize(long bytes) {
+        if (-1000 < bytes && bytes < 1000) {
+            return bytes + " B";
+        }
+        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+        while (bytes <= -999_950 || bytes >= 999_950) {
+            bytes /= 1000;
+            ci.next();
+        }
+        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+    }
+
     public Component component() {
         return component;
     }
@@ -88,7 +113,8 @@ public class DetailsPane {
                 .replace("{{CC}}", escape(mail.cc()))
                 .replace("{{BCC}}", escape(mail.bcc()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
-                .replace("{{PLAIN}}", mail.plainContent());
+                .replace("{{PLAIN}}", mail.plainContent())
+                .replace("{{ATTACHMENTS}}", renderAttachmentsList(mail));
         detailsTextPane.setText(text);
 
         var dummyHttpPrefix = """
@@ -109,6 +135,7 @@ public class DetailsPane {
             assert is != null;
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
+            Logger.exception(e);
             throw new RuntimeException(e);
         }
     }

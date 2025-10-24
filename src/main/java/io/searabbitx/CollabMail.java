@@ -7,8 +7,6 @@ import io.searabbitx.storage.Storage;
 import io.searabbitx.ui.Tab;
 import io.searabbitx.util.Logger;
 
-import javax.swing.*;
-
 public class CollabMail implements BurpExtension {
     private static final String VERSION = "0.1.5 jaa";
 

@@ -6,6 +6,7 @@ import burp.api.montoya.collaborator.SecretKey;
 import burp.api.montoya.persistence.PersistedList;
 import burp.api.montoya.persistence.PersistedObject;
 import io.searabbitx.mail.Mail;
+import io.searabbitx.util.Logger;
 
 import java.io.*;
 import java.util.Base64;
@@ -32,6 +33,7 @@ public class Storage {
         ) {
             oos.writeObject(mail);
         } catch (IOException e) {
+            Logger.exception(e);
             throw new RuntimeException(e);
         }
         return Base64.getEncoder().encodeToString(baos.toByteArray());

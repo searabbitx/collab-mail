@@ -8,7 +8,9 @@ import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -27,6 +29,18 @@ class SmtpConversation {
         return i.smtpDetails().map(sd -> new SmtpConversation(sd.conversation(), i.timeStamp().toLocalDateTime()));
     }
 
+    private static List<Mail.Attachment> mimeParserAttachments(MimeMessageParser parser) {
+        return parser.getAttachmentList().stream()
+                .map(ds -> {
+                    try {
+                        return new Mail.Attachment(ds.getName(), ds.getContentType(), ds.getInputStream().readAllBytes());
+                    } catch (IOException e) {
+                        Logger.exception(e);
+                        throw new RuntimeException(e);
+                    }
+                }).toList();
+    }
+
     private Mail mimeParserToMail(MimeMessageParser parser) throws Exception {
         var tos = parser.getTo().stream().map(Address::toString).toList();
         var bcc = parser.getBcc().stream().map(Address::toString).toList();
@@ -40,13 +54,15 @@ class SmtpConversation {
                 parser.getSubject(),
                 parser.getPlainContent(),
                 parser.getHtmlContent(),
-                conversation
+                conversation,
+                mimeParserAttachments(parser)
         );
     }
 
     Optional<Mail> extractMail() {
         Logger.log("Received smtp connection");
-        return extractDataCommand().flatMap(this::parseData);
+        var r = extractDataCommand().flatMap(this::parseData);
+        return r;
     }
 
     private Optional<String> extractDataCommand() {
@@ -68,6 +84,7 @@ class SmtpConversation {
             parser.parse();
             return Optional.of(mimeParserToMail(parser));
         } catch (Exception e) {
+            Logger.exception(e);
             throw new RuntimeException(e);
         }
     }
