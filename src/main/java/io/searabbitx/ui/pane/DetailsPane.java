@@ -25,6 +25,7 @@ public class DetailsPane {
     private final String template;
     private final HttpResponseEditor htmlEditor;
     private final RawEditor rawEditor;
+    private final AttachmentsTab attachmentsTab;
 
     public DetailsPane(UserInterface ui) {
         detailsTextPane = new JTextPane();
@@ -53,6 +54,10 @@ public class DetailsPane {
         rawEditor = ui.createRawEditor(EditorOptions.READ_ONLY);
         tabs.addTab("SMTP Conversation", rawEditor.uiComponent());
         tabs.setEnabledAt(3, false);
+
+        attachmentsTab = new AttachmentsTab(ui);
+        tabs.addTab("Attachments", attachmentsTab.component());
+        tabs.setEnabledAt(4, false);
 
         component = new JPanel(new GridBagLayout());
         var gbc = new GridBagConstraints();
@@ -128,6 +133,9 @@ public class DetailsPane {
         renderTextPane.setText(mail.htmlContent());
 
         rawEditor.setContents(ByteArray.byteArray(mail.smtpConversation().getBytes()));
+
+        attachmentsTab.show(mail.attachments());
+        tabs.setEnabledAt(4, !mail.attachments().isEmpty());
     }
 
     private String readTemplate() {
