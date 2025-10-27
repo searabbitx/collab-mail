@@ -124,7 +124,15 @@ public class DetailsPane {
     }
 
     private void updateDetailsTab(Mail mail) {
-        var text = template.replace("{{FROM}}", escape(mail.from())).replace("{{TO}}", escape(mail.to())).replace("{{CC}}", escape(mail.cc())).replace("{{BCC}}", escape(mail.bcc())).replace("{{SUBJECT}}", escape(mail.subject())).replace("{{TRUNCATED}}", mail.isTruncated() ? "<b>YES</b> (SMTP conversation exceeded interaction limit)" : "NO").replace("{{PLAIN}}", mail.plainContent()).replace("{{ATTACHMENTS}}", renderAttachmentsList(mail));
+        var text = template
+                .replace("{{FROM}}", escape(mail.from()))
+                .replace("{{TO}}", escape(mail.to()))
+                .replace("{{CC}}", escape(mail.cc()))
+                .replace("{{BCC}}", escape(mail.bcc()))
+                .replace("{{SUBJECT}}", escape(mail.subject()))
+                .replace("{{TRUNCATED}}", mail.isTruncated() ? "<b>YES</b> (SMTP conversation exceeded interaction limit)" : "NO")
+                .replace("{{PLAIN}}", mail.plainContent())
+                .replace("{{ATTACHMENTS}}", renderAttachmentsList(mail));
         detailsTextPane.setText(text);
     }
 

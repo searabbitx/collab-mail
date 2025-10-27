@@ -1,6 +1,7 @@
 package io.searabbitx.mail;
 
 import burp.api.montoya.collaborator.Interaction;
+import com.sun.mail.util.DecodingException;
 import io.searabbitx.util.Logger;
 import jakarta.mail.Address;
 import jakarta.mail.Session;
@@ -29,6 +30,11 @@ class SmtpConversation {
 
     static Optional<SmtpConversation> fromInteraction(Interaction i) {
         return i.smtpDetails().map(sd -> new SmtpConversation(sd.conversation(), i.timeStamp().toLocalDateTime()));
+    }
+
+    Optional<Mail> extractMail() {
+        Logger.log("Received smtp connection");
+        return extractDataCommand().flatMap(this::parseData);
     }
 
     private static List<Mail.Attachment> mimeParserAttachments(MimeMessageParser parser) {
@@ -62,11 +68,6 @@ class SmtpConversation {
         );
     }
 
-    Optional<Mail> extractMail() {
-        Logger.log("Received smtp connection");
-        return extractDataCommand().flatMap(this::parseData);
-    }
-
     private boolean isConversationTruncated() {
         return conversation.length() >= SMTP_CONVERSATION_LIMIT;
     }
@@ -93,6 +94,9 @@ class SmtpConversation {
             parser.parse();
             return Optional.of(mimeParserToMail(parser));
         } catch (Exception e) {
+            if (e.getCause() instanceof DecodingException) {
+                return parseData(data.substring(0, data.length() - 1));
+            }
             Logger.exception(e);
             throw new RuntimeException(e);
         }
