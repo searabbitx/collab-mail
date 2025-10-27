@@ -130,7 +130,7 @@ public class DetailsPane {
                 .replace("{{CC}}", escape(mail.cc()))
                 .replace("{{BCC}}", escape(mail.bcc()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
-                .replace("{{TRUNCATED}}", mail.isTruncated() ? "<b>YES</b> (SMTP conversation exceeded interaction limit)" : "NO")
+                .replace("{{TRUNCATED}}", mail.isTruncated() ? "<b>YES</b> (SMTP conversation exceeded interaction limit, <span color=red>attachments may be corrupted!</span>)" : "NO")
                 .replace("{{PLAIN}}", mail.plainContent())
                 .replace("{{ATTACHMENTS}}", renderAttachmentsList(mail));
         detailsTextPane.setText(text);
