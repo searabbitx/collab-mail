@@ -18,6 +18,11 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 
 public class DetailsPane {
+    private static final int RENDER_HTML_TAB = 1;
+    private static final int RAW_HTML_TAB = 2;
+    private static final int SMTP_CONVERSATION_TAB = 3;
+    private static final int ATTACHMENTS_TAB = 4;
+
     private final JPanel component;
     private final JTextPane detailsTextPane;
     private final JTextPane renderTextPane;
@@ -40,7 +45,7 @@ public class DetailsPane {
         tabs.addTab("Details", scroll);
         htmlEditor = ui.createHttpResponseEditor(EditorOptions.READ_ONLY);
         tabs.addTab("Html", htmlEditor.uiComponent());
-        tabs.setEnabledAt(1, false);
+        tabs.setEnabledAt(RENDER_HTML_TAB, false);
 
         renderTextPane = new JTextPane();
         renderTextPane.setEditable(false);
@@ -48,16 +53,16 @@ public class DetailsPane {
         renderTextPane.setText("");
         renderTextPane.setBackground(Color.WHITE);
         renderTextPane.setForeground(Color.BLACK);
-        tabs.addTab("Render", renderTextPane);
-        tabs.setEnabledAt(2, false);
+        tabs.addTab("Render", new JScrollPane(renderTextPane));
+        tabs.setEnabledAt(RAW_HTML_TAB, false);
 
         rawEditor = ui.createRawEditor(EditorOptions.READ_ONLY);
         tabs.addTab("SMTP Conversation", rawEditor.uiComponent());
-        tabs.setEnabledAt(3, false);
+        tabs.setEnabledAt(SMTP_CONVERSATION_TAB, false);
 
         attachmentsTab = new AttachmentsTab(ui);
         tabs.addTab("Attachments", attachmentsTab.component());
-        tabs.setEnabledAt(4, false);
+        tabs.setEnabledAt(ATTACHMENTS_TAB, false);
 
         component = new JPanel(new GridBagLayout());
         var gbc = new GridBagConstraints();
@@ -109,33 +114,37 @@ public class DetailsPane {
     }
 
     public void update(Mail mail) {
-        tabs.setEnabledAt(1, true);
-        tabs.setEnabledAt(2, true);
-        tabs.setEnabledAt(3, true);
+        tabs.setEnabledAt(SMTP_CONVERSATION_TAB, true);
+
         var text = template
                 .replace("{{FROM}}", escape(mail.from()))
                 .replace("{{TO}}", escape(mail.to()))
                 .replace("{{CC}}", escape(mail.cc()))
                 .replace("{{BCC}}", escape(mail.bcc()))
                 .replace("{{SUBJECT}}", escape(mail.subject()))
+                .replace("{{TRUNCATED}}", mail.isTruncated() ? "<b>YES</b> (SMTP conversation exceeded interaction limit)" : "NO")
                 .replace("{{PLAIN}}", mail.plainContent())
                 .replace("{{ATTACHMENTS}}", renderAttachmentsList(mail));
         detailsTextPane.setText(text);
 
-        var dummyHttpPrefix = """
-                Content-Type: text/html\r
-                \r
-                OK""";
-        HttpResponse response = HttpResponse.httpResponse(dummyHttpPrefix).withBody(mail.htmlContent());
-
-        htmlEditor.setResponse(response);
+        var hasHtml = mail.htmlContent() != null;
+        if (hasHtml) {
+            var dummyHttpPrefix = """
+                    Content-Type: text/html\r
+                    \r
+                    OK""";
+            HttpResponse response = HttpResponse.httpResponse(dummyHttpPrefix).withBody(mail.htmlContent());
+            htmlEditor.setResponse(response);
+        }
+        tabs.setEnabledAt(RENDER_HTML_TAB, hasHtml);
+        tabs.setEnabledAt(RAW_HTML_TAB, hasHtml);
 
         renderTextPane.setText(mail.htmlContent());
 
         rawEditor.setContents(ByteArray.byteArray(mail.smtpConversation().getBytes()));
 
         attachmentsTab.show(mail.attachments());
-        tabs.setEnabledAt(4, !mail.attachments().isEmpty());
+        tabs.setEnabledAt(ATTACHMENTS_TAB, !mail.attachments().isEmpty());
     }
 
     private String readTemplate() {

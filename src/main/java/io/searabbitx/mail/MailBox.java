@@ -38,7 +38,7 @@ public class MailBox {
                 .map(SmtpConversation::extractMail)
                 .flatMap(Optional::stream)
                 .peek(m -> Logger.log("Parsed mail from: " + m.from()))
-                .filter(mail -> addresses().anyMatch(mail.to()::contains))
+                .filter(mail -> addresses().anyMatch(a -> (mail.to() + mail.cc() + mail.bcc()).contains(a)))
                 .peek(storage::storeMail);
     }
 

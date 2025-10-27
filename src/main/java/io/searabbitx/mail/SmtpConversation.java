@@ -17,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class SmtpConversation {
+    private static final int SMTP_CONVERSATION_LIMIT = 8192;
+
     private final String conversation;
     private final LocalDateTime time;
 
@@ -55,19 +57,26 @@ class SmtpConversation {
                 parser.getPlainContent(),
                 parser.getHtmlContent(),
                 conversation,
-                mimeParserAttachments(parser)
+                mimeParserAttachments(parser),
+                isConversationTruncated()
         );
     }
 
     Optional<Mail> extractMail() {
         Logger.log("Received smtp connection");
-        var r = extractDataCommand().flatMap(this::parseData);
-        return r;
+        return extractDataCommand().flatMap(this::parseData);
+    }
+
+    private boolean isConversationTruncated() {
+        return conversation.length() >= SMTP_CONVERSATION_LIMIT;
     }
 
     private Optional<String> extractDataCommand() {
+        var regex = isConversationTruncated()
+                ? "DATA\\s*\\r?\\n354.*?\\r?\\n(.*?)$"
+                : "DATA\\s*\\r?\\n354.*?\\r?\\n(.*?)\\r?\\n\\.\\r?\\n";
         Pattern pattern = Pattern.compile(
-                "DATA\\s*\\r?\\n354.*?\\r?\\n(.*?)\\r?\\n\\.\\r?\\n",
+                regex,
                 Pattern.DOTALL | Pattern.CASE_INSENSITIVE
         );
         Matcher matcher = pattern.matcher(conversation);

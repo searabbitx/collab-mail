@@ -7,7 +7,8 @@ import java.util.List;
 
 public record Mail(LocalDateTime time, String from, String to, String cc, String bcc, String subject,
                    String plainContent,
-                   String htmlContent, String smtpConversation, List<Attachment> attachments) implements Serializable {
+                   String htmlContent, String smtpConversation, List<Attachment> attachments,
+                   boolean isTruncated) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
