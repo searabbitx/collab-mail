@@ -12,6 +12,14 @@ public record Mail(LocalDateTime time, String from, String to, String cc, String
     @Serial
     private static final long serialVersionUID = 1L;
 
+    public boolean hasHtml() {
+        return htmlContent != null;
+    }
+
+    public boolean hasAttachments() {
+        return !attachments.isEmpty();
+    }
+
     public record Attachment(String name, String contentType, byte[] content) implements Serializable {
         @Serial
         private static final long serialVersionUID = 1L;
