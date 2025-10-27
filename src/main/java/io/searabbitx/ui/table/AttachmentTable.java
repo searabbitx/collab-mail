@@ -1,13 +1,13 @@
 package io.searabbitx.ui.table;
 
-import io.searabbitx.mail.Mail;
+import io.searabbitx.mail.Attachment;
 
 import java.util.List;
 import java.util.Optional;
 
 public class AttachmentTable extends BaseTable {
     private final AttachmentTableModel model;
-    private List<Mail.Attachment> attachments;
+    private List<? extends Attachment> attachments;
 
     public AttachmentTable() {
         super();
@@ -25,11 +25,11 @@ public class AttachmentTable extends BaseTable {
     protected void onEntryRemoval(RowIndex ri) {
     }
 
-    public Optional<Mail.Attachment> selectedAttachment() {
+    public Optional<? extends Attachment> selectedAttachment() {
         return selectedRowIndex().map(i -> attachments.get(i.modelRow()));
     }
 
-    public void setAttachments(List<Mail.Attachment> attachments) {
+    public void setAttachments(List<? extends Attachment> attachments) {
         this.attachments = attachments;
         model.clear();
         attachments.forEach(model::addRow);

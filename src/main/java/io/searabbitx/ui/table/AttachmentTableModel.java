@@ -1,6 +1,7 @@
 package io.searabbitx.ui.table;
 
-import io.searabbitx.mail.Mail;
+import io.searabbitx.mail.Attachment;
+import io.searabbitx.mail.MailV1;
 
 class AttachmentTableModel extends NonEditableModel {
     private static final String[] COLS = {"Name", "Type"};
@@ -10,7 +11,7 @@ class AttachmentTableModel extends NonEditableModel {
         return COLS;
     }
 
-    void addRow(Mail.Attachment a) {
+    void addRow(Attachment a) {
         addRow(new Object[]{a.name(), a.contentType()});
     }
 }

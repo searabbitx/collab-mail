@@ -40,16 +40,11 @@ class SmtpConversation {
         return i.smtpDetails().map(sd -> new SmtpConversation(sd.conversation(), i.timeStamp().toLocalDateTime()));
     }
 
-    Optional<Mail> extractMail() {
-        Logger.log("Received smtp connection");
-        return extractDataCommand().flatMap(this::parseData);
-    }
-
-    private static List<Mail.Attachment> mimeParserAttachments(MimeMessageParser parser) {
+    private static List<? extends Attachment> mimeParserAttachments(MimeMessageParser parser) {
         return parser.getAttachmentList().stream()
                 .map(ds -> {
                     try {
-                        return new Mail.Attachment(ds.getName(), ds.getContentType(), ds.getInputStream().readAllBytes());
+                        return new AttachmentV1(ds.getName(), ds.getContentType(), ds.getInputStream().readAllBytes());
                     } catch (IOException e) {
                         Logger.exception(e);
                         throw new RuntimeException(e);
@@ -57,11 +52,16 @@ class SmtpConversation {
                 }).toList();
     }
 
+    Optional<Mail> extractMail() {
+        Logger.log("Received smtp connection");
+        return extractDataCommand().flatMap(this::parseData);
+    }
+
     private Mail mimeParserToMail(MimeMessageParser parser, boolean isTruncated) throws Exception {
         var tos = parser.getTo().stream().map(Address::toString).toList();
         var bcc = parser.getBcc().stream().map(Address::toString).toList();
         var cc = parser.getCc().stream().map(Address::toString).toList();
-        return new Mail(
+        return new MailV1(
                 time,
                 parser.getFrom(),
                 String.join(", ", tos),

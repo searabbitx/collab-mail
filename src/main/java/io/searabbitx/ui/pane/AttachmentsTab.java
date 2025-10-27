@@ -3,7 +3,8 @@ package io.searabbitx.ui.pane;
 import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
-import io.searabbitx.mail.Mail;
+import io.searabbitx.mail.Attachment;
+import io.searabbitx.mail.MailV1;
 import io.searabbitx.ui.table.AttachmentTable;
 
 import javax.swing.*;
@@ -28,7 +29,7 @@ public class AttachmentsTab {
         return component;
     }
 
-    public void show(List<Mail.Attachment> as) {
+    public void show(List<? extends Attachment> as) {
         table.setAttachments(as);
     }
 
@@ -67,7 +68,7 @@ public class AttachmentsTab {
         table.selectedAttachment().ifPresent(this::saveAttachment);
     }
 
-    private void saveAttachment(Mail.Attachment attachment) {
+    private void saveAttachment(Attachment attachment) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save Attachment");
         fileChooser.setSelectedFile(new File(attachment.name()));
@@ -106,7 +107,7 @@ public class AttachmentsTab {
         table.selectedAttachment().ifPresent(this::viewAttachment);
     }
 
-    private void viewAttachment(Mail.Attachment attachment) {
+    private void viewAttachment(Attachment attachment) {
         var f = new JFrame(attachment.name());
         var editor = ui.createRawEditor(EditorOptions.READ_ONLY);
         editor.setContents(ByteArray.byteArray(attachment.content()));
