@@ -2,6 +2,7 @@ package io.searabbitx.ui.table;
 
 import io.searabbitx.mail.Address;
 
+import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
 public class AddressTable extends BaseTable {
@@ -27,5 +28,18 @@ public class AddressTable extends BaseTable {
     @Override
     protected void onEntryRemoval(RowIndex ri) {
         entryRemovalCallback.accept(ri.modelRow());
+    }
+
+    @Override
+    public String getToolTipText(MouseEvent e) {
+        var p = e.getPoint();
+        int rowIndex = rowAtPoint(p);
+        int colIndex = columnAtPoint(p);
+
+        try {
+            return getValueAt(rowIndex, colIndex).toString();
+        } catch (RuntimeException _) {
+            return null;
+        }
     }
 }
