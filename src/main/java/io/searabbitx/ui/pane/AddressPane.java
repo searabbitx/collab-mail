@@ -43,9 +43,13 @@ public class AddressPane {
 
         // Create input fields
         JTextField userField = new JTextField(20);
+        // Note field
+        JTextArea noteField = new JTextArea(7, 20);
+        JScrollPane noteScroll = new JScrollPane(noteField);
 
         // Create labels
-        JLabel infoLabel = new JLabel("Username:");
+        JLabel userLabel = new JLabel("Username:");
+        JLabel noteLabel = new JLabel("Note:");
 
         // Create buttons
         JButton addButton = new JButton("Add");
@@ -55,14 +59,26 @@ public class AddressPane {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
+        var initialFill = gbc.fill;
         // Info label and field
         gbc.gridx = 0;
         gbc.gridy = 0;
-        dialog.add(infoLabel, gbc);
+        dialog.add(userLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
         dialog.add(userField, gbc);
+
+        // note label and field
+        gbc.weightx = 0.0;
+        gbc.fill = initialFill;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        dialog.add(noteLabel, gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        dialog.add(noteScroll, gbc);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
@@ -78,9 +94,10 @@ public class AddressPane {
         // Button actions
         addButton.addActionListener(e -> {
             String username = userField.getText().trim();
+            String note = noteField.getText().trim();
 
             if (!username.isEmpty()) {
-                String address = mailBox.generate(username);
+                var address = mailBox.generate(username, note);
                 addressTable.addRow(address);
                 dialog.dispose();
             } else {
@@ -110,9 +127,9 @@ public class AddressPane {
         });
 
         // Configure and show dialog
-        dialog.setSize(300, 150);
+        dialog.setSize(new Dimension(355, 255));
         dialog.setLocationRelativeTo(component);
-        dialog.setResizable(false);
+        dialog.setResizable(true);
         dialog.setVisible(true);
     }
 

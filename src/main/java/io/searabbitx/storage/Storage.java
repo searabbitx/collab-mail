@@ -5,6 +5,8 @@ import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.SecretKey;
 import burp.api.montoya.persistence.PersistedList;
 import burp.api.montoya.persistence.PersistedObject;
+import io.searabbitx.mail.Address;
+import io.searabbitx.mail.AddressV1;
 import io.searabbitx.mail.Mail;
 import io.searabbitx.util.Logger;
 
@@ -26,12 +28,12 @@ public class Storage {
         this.collaborator = collaborator;
     }
 
-    private static String encodeMail(Mail mail) {
+    private static String encode(Object obj) {
         var baos = new ByteArrayOutputStream();
         try (
                 var oos = new ObjectOutputStream(baos)
         ) {
-            oos.writeObject(mail);
+            oos.writeObject(obj);
         } catch (IOException e) {
             Logger.exception(e);
             throw new RuntimeException(e);
@@ -51,12 +53,31 @@ public class Storage {
         }
     }
 
-    public void storeAddress(String address) {
-        persistedAddressList().add(address);
+    private static Optional<Address> decodeAddress(String enc) {
+        if (enc.matches("^[^@]+@[^@]+$")) {
+            var ind = enc.indexOf('@');
+            var uname = enc.substring(0, ind);
+            var dom = enc.substring(ind + 1);
+            return Optional.of(new AddressV1(uname, dom, ""));
+        }
+        byte[] data = Base64.getDecoder().decode(enc);
+        try (
+                var ois = new ObjectInputStream(new ByteArrayInputStream(data))
+        ) {
+            // TODO: safe deserialization. Although if some can control your project file they can inject code in a different way too
+            return Optional.of((Address) ois.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            return Optional.empty();
+        }
+    }
+
+    public void storeAddress(Address address) {
+        var encoded = encode(address);
+        persistedAddressList().add(encoded);
     }
 
     public void storeMail(Mail mail) {
-        var encoded = encodeMail(mail);
+        var encoded = encode(mail);
         persistedMailList().add(encoded);
     }
 
@@ -104,8 +125,10 @@ public class Storage {
         return collaborator.restoreClient(SecretKey.secretKey(key));
     }
 
-    public Stream<String> fetchAddresses() {
-        return persistedAddressList().stream();
+    public Stream<Address> fetchAddresses() {
+        return persistedAddressList().stream()
+                .map(Storage::decodeAddress)
+                .flatMap(Optional::stream);
     }
 
     private PersistedList<String> persistedAddressList() {

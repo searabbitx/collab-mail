@@ -1,9 +1,11 @@
 package io.searabbitx.ui.table;
 
+import io.searabbitx.mail.Address;
+
 import java.util.Arrays;
 
 class AddressTableModel extends NonEditableModel {
-    private static final String[] COLS = {"Address"};
+    private static final String[] COLS = {"Address", "Note"};
 
     @Override
     protected String[] cols() {
@@ -14,7 +16,7 @@ class AddressTableModel extends NonEditableModel {
         return (String) getValueAt(row, Arrays.asList(COLS).indexOf("Address"));
     }
 
-    void addRow(String address) {
-        addRow(new Object[]{address});
+    void addRow(Address address) {
+        addRow(new Object[]{address.toString(), address.note()});
     }
 }

@@ -16,14 +16,14 @@ public class MailBox {
         this.client = storage.fetchClient();
     }
 
-    public String generate(String username) {
+    public Address generate(String username, String note) {
         var dom = client.generatePayload();
-        var a = new Address(username, dom.toString());
-        storage.storeAddress(a.toString());
-        return a.toString();
+        var a = new AddressV1(username, dom.toString(), note);
+        storage.storeAddress(a);
+        return a;
     }
 
-    public Stream<String> addresses() {
+    public Stream<Address> addresses() {
         return storage.fetchAddresses();
     }
 
@@ -38,7 +38,7 @@ public class MailBox {
                 .map(SmtpConversation::extractMail)
                 .flatMap(Optional::stream)
                 .peek(m -> Logger.log("Parsed mail from: " + m.from()))
-                .filter(mail -> addresses().anyMatch(a -> (mail.to() + mail.cc() + mail.bcc()).contains(a)))
+                .filter(mail -> addresses().anyMatch(a -> (mail.to() + mail.cc() + mail.bcc()).contains(a.toString())))
                 .peek(storage::storeMail);
     }
 
@@ -58,11 +58,4 @@ public class MailBox {
         return this.storage.mailAt(row);
     }
 
-    private record Address(String username, String domain) {
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public String toString() {
-            return username + "@" + domain;
-        }
-    }
 }

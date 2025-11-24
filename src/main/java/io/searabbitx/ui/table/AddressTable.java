@@ -1,5 +1,7 @@
 package io.searabbitx.ui.table;
 
+import io.searabbitx.mail.Address;
+
 import java.util.function.Consumer;
 
 public class AddressTable extends BaseTable {
@@ -13,7 +15,7 @@ public class AddressTable extends BaseTable {
         setModel(model);
     }
 
-    public void addRow(String add) {
+    public void addRow(Address add) {
         model.addRow(add);
     }
 
