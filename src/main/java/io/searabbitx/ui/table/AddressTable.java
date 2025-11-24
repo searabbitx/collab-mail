@@ -3,6 +3,7 @@ package io.searabbitx.ui.table;
 import io.searabbitx.mail.Address;
 
 import java.awt.event.MouseEvent;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class AddressTable extends BaseTable {
@@ -20,9 +21,13 @@ public class AddressTable extends BaseTable {
         model.addRow(add);
     }
 
+    public Optional<Address> selectedAddress() {
+        return selectedRowIndex().map(ri -> model.getAddressAt(ri.modelRow()));
+    }
+
     @Override
     protected String rowStringRepresentation(RowIndex ri) {
-        return model.getAddressAt(ri.modelRow());
+        return model.getAddressStringAt(ri.modelRow());
     }
 
     @Override
@@ -41,5 +46,9 @@ public class AddressTable extends BaseTable {
         } catch (RuntimeException _) {
             return null;
         }
+    }
+
+    public void updateNoteAt(RowIndex ri, String n) {
+        model.updateNoteAt(ri, n);
     }
 }

@@ -111,6 +111,14 @@ public class Storage {
         perMail.addAll(filtered);
     }
 
+    public void updateAddressNoteAt(int row, String n) {
+        var addr = decodeAddress(persistedAddressList().get(row));
+        addr.ifPresent(a -> {
+            var updated = new AddressV1(a.username(), a.domain(), n);
+            persistedAddressList().set(row, encode(updated));
+        });
+    }
+
     public Mail mailAt(int row) {
         return decodeMail(persistedMailList().get(row)).orElseThrow();
     }

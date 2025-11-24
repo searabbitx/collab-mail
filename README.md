@@ -4,7 +4,7 @@ A Burp Suite extension that lets you generate temporary email addresses directly
 
 Requires Burp Pro
 
-![[]](preview.jpeg)
+![[]](preview.png)
 
 ## NOTE: If you are using a public collaborator server
 

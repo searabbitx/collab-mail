@@ -58,4 +58,7 @@ public class MailBox {
         return this.storage.mailAt(row);
     }
 
+    public void updateAddressNoteAt(int row, String n) {
+        this.storage.updateAddressNoteAt(row, n);
+    }
 }

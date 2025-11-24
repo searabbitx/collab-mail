@@ -17,8 +17,8 @@ abstract class BaseTable extends JTable {
         selectedRowIndex().ifPresent(ri -> {
             yesNoDialog("Are you sure you want to remove this entry?\n" + rowStringRepresentation(ri), "Confirm Removal", () -> {
                 this.onEntryRemoval(ri);
-                ((DefaultTableModel) getModel()).removeRow(ri.modelRow);
-                selectNextRowIfAvailable(ri.selectedRow);
+                ((DefaultTableModel) getModel()).removeRow(ri.modelRow());
+                selectNextRowIfAvailable(ri.selectedRow());
             }, this);
         });
     }
@@ -35,11 +35,8 @@ abstract class BaseTable extends JTable {
 
     protected abstract void onEntryRemoval(RowIndex rowIndex);
 
-    protected Optional<RowIndex> selectedRowIndex() {
+    public Optional<RowIndex> selectedRowIndex() {
         int selectedRow = getSelectedRow();
         return selectedRow >= 0 ? Optional.of(new RowIndex(selectedRow, convertRowIndexToModel(selectedRow))) : Optional.empty();
-    }
-
-    record RowIndex(int selectedRow, int modelRow) {
     }
 }

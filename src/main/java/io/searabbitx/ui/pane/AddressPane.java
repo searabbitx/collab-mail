@@ -1,5 +1,6 @@
 package io.searabbitx.ui.pane;
 
+import io.searabbitx.mail.Address;
 import io.searabbitx.mail.MailBox;
 import io.searabbitx.ui.table.AddressTable;
 
@@ -7,11 +8,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class AddressPane {
     private final MailBox mailBox;
     private final AddressTable addressTable;
     private final JButton addButton;
+    private final JButton editButton;
     private final JButton removeButton;
     private JSplitPane component;
 
@@ -19,9 +23,21 @@ public class AddressPane {
         this.mailBox = mailBox;
         addressTable = new AddressTable(this.mailBox::removeAddressAt);
         addButton = new JButton("Add");
+        editButton = new JButton("Edit");
         removeButton = new JButton("Remove");
 
-        addButton.addActionListener(_ -> showAddEntryDialog());
+        BiConsumer<String, String> onAddrAdded = (u, n) -> {
+            var address = mailBox.generate(u, n);
+            addressTable.addRow(address);
+        };
+        addButton.addActionListener(_ -> showAddressDialog(onAddrAdded, Optional.empty()));
+        BiConsumer<String, String> onAddrEdited = (_, n) -> {
+            addressTable.selectedRowIndex().ifPresent(ri -> {
+                addressTable.updateNoteAt(ri, n);
+                mailBox.updateAddressNoteAt(ri.modelRow(), n);
+            });
+        };
+        editButton.addActionListener(_ -> showAddressDialog(onAddrEdited, addressTable.selectedAddress()));
         removeButton.addActionListener(_ -> addressTable.removeSelectedEntry());
 
         setLayout();
@@ -35,7 +51,7 @@ public class AddressPane {
         return component;
     }
 
-    private void showAddEntryDialog() {
+    private void showAddressDialog(BiConsumer<String, String> onSuccess, Optional<Address> address) {
         // Create input dialog for Info and Value
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(component), "Add New User", true);
         dialog.setLayout(new GridBagLayout());
@@ -52,7 +68,7 @@ public class AddressPane {
         JLabel noteLabel = new JLabel("Note:");
 
         // Create buttons
-        JButton addButton = new JButton("Add");
+        JButton okButton = new JButton("Ok");
         JButton cancelButton = new JButton("Cancel");
 
         // Layout components
@@ -82,7 +98,7 @@ public class AddressPane {
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(addButton);
+        buttonPanel.add(okButton);
         buttonPanel.add(cancelButton);
 
         gbc.gridx = 0;
@@ -91,14 +107,19 @@ public class AddressPane {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         dialog.add(buttonPanel, gbc);
 
+        address.ifPresent(a -> {
+            userField.setText(a.toString());
+            userField.setEditable(false);
+            noteField.setText(a.note());
+        });
+
         // Button actions
-        addButton.addActionListener(e -> {
+        okButton.addActionListener(e -> {
             String username = userField.getText().trim();
             String note = noteField.getText().trim();
 
             if (!username.isEmpty()) {
-                var address = mailBox.generate(username, note);
-                addressTable.addRow(address);
+                onSuccess.accept(username, note);
                 dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog,
@@ -116,7 +137,7 @@ public class AddressPane {
         });
 
         // Enter key support for add button
-        dialog.getRootPane().setDefaultButton(addButton);
+        dialog.getRootPane().setDefaultButton(okButton);
 
         // Set focus to info field
         SwingUtilities.invokeLater(new Runnable() {
@@ -148,6 +169,8 @@ public class AddressPane {
         buttonGbc.insets = new Insets(5, 10, 5, 10);
         buttonPanel.add(addButton, buttonGbc);
         buttonGbc.gridy = 1;
+        buttonPanel.add(editButton, buttonGbc);
+        buttonGbc.gridy = 2;
         buttonPanel.add(removeButton, buttonGbc);
         buttonGbc.weighty = 2.0;
         buttonPanel.add(new JPanel(), buttonGbc);
