@@ -1,5 +1,14 @@
 package io.searabbitx.storage;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import burp.api.montoya.collaborator.Collaborator;
 import burp.api.montoya.collaborator.CollaboratorClient;
 import burp.api.montoya.collaborator.SecretKey;
@@ -9,11 +18,6 @@ import io.searabbitx.mail.Address;
 import io.searabbitx.mail.AddressV1;
 import io.searabbitx.mail.Mail;
 import io.searabbitx.util.Logger;
-
-import java.io.*;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Storage {
     private static final String ADDRESSES_KEY = "addresses";
@@ -31,8 +35,7 @@ public class Storage {
     private static String encode(Object obj) {
         var baos = new ByteArrayOutputStream();
         try (
-                var oos = new ObjectOutputStream(baos)
-        ) {
+                var oos = new ObjectOutputStream(baos)) {
             oos.writeObject(obj);
         } catch (IOException e) {
             Logger.exception(e);
@@ -44,9 +47,9 @@ public class Storage {
     private static Optional<Mail> decodeMail(String enc) {
         byte[] data = Base64.getDecoder().decode(enc);
         try (
-                var ois = new ObjectInputStream(new ByteArrayInputStream(data))
-        ) {
-            // TODO: safe deserialization. Although if some can control your project file they can inject code in a different way too
+                var ois = new ObjectInputStream(new ByteArrayInputStream(data))) {
+            // TODO: safe deserialization. Although if some can control your project file
+            // they can inject code in a different way too
             return Optional.of((Mail) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             return Optional.empty();
@@ -55,16 +58,13 @@ public class Storage {
 
     private static Optional<Address> decodeAddress(String enc) {
         if (enc.matches("^[^@]+@[^@]+$")) {
-            var ind = enc.indexOf('@');
-            var uname = enc.substring(0, ind);
-            var dom = enc.substring(ind + 1);
-            return Optional.of(new AddressV1(uname, dom, ""));
+            return Optional.of(Address.fromFullAddr(enc, ""));
         }
         byte[] data = Base64.getDecoder().decode(enc);
         try (
-                var ois = new ObjectInputStream(new ByteArrayInputStream(data))
-        ) {
-            // TODO: safe deserialization. Although if some can control your project file they can inject code in a different way too
+                var ois = new ObjectInputStream(new ByteArrayInputStream(data))) {
+            // TODO: safe deserialization. Although if some can control your project file
+            // they can inject code in a different way too
             return Optional.of((Address) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             return Optional.empty();

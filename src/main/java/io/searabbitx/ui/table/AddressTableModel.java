@@ -1,13 +1,11 @@
 package io.searabbitx.ui.table;
 
-import io.searabbitx.mail.Address;
-import io.searabbitx.mail.AddressV1;
-
 import java.util.Arrays;
-import java.util.Optional;
+
+import io.searabbitx.mail.Address;
 
 class AddressTableModel extends NonEditableModel {
-    private static final String[] COLS = {"Address", "Note"};
+    private static final String[] COLS = { "Address", "Note" };
 
     @Override
     protected String[] cols() {
@@ -19,17 +17,13 @@ class AddressTableModel extends NonEditableModel {
     }
 
     void addRow(Address address) {
-        addRow(new Object[]{address.toString(), address.note()});
+        addRow(new Object[] { address.toString(), address.note() });
     }
 
     public Address getAddressAt(int row) {
-        var add = getAddressStringAt(row);
-        var ind = add.indexOf('@');
-        var uname = add.substring(0, ind);
-        var dom = add.substring(ind + 1);
-
+        var fullAddress = getAddressStringAt(row);
         var note = (String) getValueAt(row, Arrays.asList(COLS).indexOf("Note"));
-        return new AddressV1(uname, dom, note);
+        return Address.fromFullAddr(fullAddress, note);
     }
 
     public void updateNoteAt(RowIndex ri, String n) {
