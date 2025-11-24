@@ -45,27 +45,23 @@ public class Storage {
     }
 
     private static Optional<Mail> decodeMail(String enc) {
-        byte[] data = Base64.getDecoder().decode(enc);
-        try (
-                var ois = new ObjectInputStream(new ByteArrayInputStream(data))) {
-            // TODO: safe deserialization. Although if some can control your project file
-            // they can inject code in a different way too
-            return Optional.of((Mail) ois.readObject());
-        } catch (IOException | ClassNotFoundException e) {
-            return Optional.empty();
-        }
+        return decodeObj(enc).map(o -> (Mail) o);
     }
 
     private static Optional<Address> decodeAddress(String enc) {
         if (enc.matches("^[^@]+@[^@]+$")) {
             return Optional.of(Address.fromFullAddr(enc, ""));
         }
+        return decodeObj(enc).map(o -> (Address) o);
+    }
+
+    private static Optional<Object> decodeObj(String enc) {
         byte[] data = Base64.getDecoder().decode(enc);
         try (
                 var ois = new ObjectInputStream(new ByteArrayInputStream(data))) {
             // TODO: safe deserialization. Although if some can control your project file
             // they can inject code in a different way too
-            return Optional.of((Address) ois.readObject());
+            return Optional.of(ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             return Optional.empty();
         }
