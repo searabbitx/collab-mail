@@ -28,7 +28,8 @@ class CopyTableCellMouseAdapter extends MouseAdapter {
         Point point = mouseEvent.getPoint();
         int row = table.rowAtPoint(point);
         int col = table.columnAtPoint(point);
-        if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && table.getSelectedColumn() != -1 && row != -1 && col != -1) {
+        if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1 && table.getSelectedColumn() != -1
+                && row != -1 && col != -1) {
             int modelRow = table.convertRowIndexToModel(row);
             int modelCol = table.convertColumnIndexToModel(col);
             String val = (String) table.getModel().getValueAt(modelRow, modelCol);
