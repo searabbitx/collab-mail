@@ -9,4 +9,8 @@ public class ThreadPool {
     public static void submit(Runnable task) {
         executor.submit(task);
     }
+
+    public static void shutdown() {
+        executor.shutdown();
+    }
 }

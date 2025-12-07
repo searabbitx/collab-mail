@@ -6,6 +6,7 @@ import io.searabbitx.mail.MailBox;
 import io.searabbitx.storage.Storage;
 import io.searabbitx.ui.Tab;
 import io.searabbitx.util.Logger;
+import io.searabbitx.util.ThreadPool;
 
 public class CollabMail implements BurpExtension {
     private static final String VERSION = "0.1.5";
@@ -19,6 +20,8 @@ public class CollabMail implements BurpExtension {
         api.userInterface().registerSuiteTab("CollabMail", initializeTab(api));
 
         Logger.logging = api.logging();
+
+        api.extension().registerUnloadingHandler(ThreadPool::shutdown);
     }
 
     private Tab initializeTab(MontoyaApi api) {
